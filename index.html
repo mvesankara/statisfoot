@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test JSX</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+
+   export default function HomePage() {
+  return (
+    <main className="min-h-screen bg-white text-slate-900">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur border-b border-slate-200">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-lg bg-[#0A1A40] grid place-items-center">
+              {/* Ballon/icone minimal */}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M8 18l2-6-4-4 6 2 4-4-2 6 4 4-6-2-4 4z" fill="#3DBEFF" />
+              </svg>
+            </div>
+            <span className="font-semibold text-lg tracking-tight text-[#0A1A40]">Statisfoot</span>
+          </div>
+          <nav className="hidden md:flex items-center gap-6 text-sm">
+            <a className="hover:text-[#0A1A40] text-slate-600" href="#">Accueil</a>
+            <a className="hover:text-[#0A1A40] text-slate-600" href="#agents">Agents</a>
+            <a className="hover:text-[#0A1A40] text-slate-600" href="#recruteurs">Recruteurs</a>
+            <a className="hover:text-[#0A1A40] text-slate-600" href="#apropos">À propos</a>
+            <a className="hover:text-[#0A1A40] text-slate-600" href="#connexion">Connexion</a>
+            <a className="inline-flex items-center rounded-full bg-[#3DBEFF] text-[#0A1A40] font-semibold px-4 py-2" href="#inscription">Inscription</a>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero with video bg */}
+      <section className="relative isolate overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <video className="h-[60vh] w-full object-cover" autoPlay muted loop playsInline poster="https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?q=80&w=1600&auto=format&fit=crop" aria-label="vidéo d'ambiance de football">
+            <source src="" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-[#0A1A40]/70" />
+        </div>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-24">
+          <h1 className="max-w-3xl text-4xl md:text-6xl font-extrabold leading-[1.05] text-white">Donnons une chance à chaque talent</h1>
+          <div className="mt-8 flex flex-wrap gap-4">
+            <a href="#decouvrir" className="inline-flex items-center rounded-xl bg-white/10 hover:bg-white/20 text-white px-5 py-3 font-medium">Découvrir les talents</a>
+            <a href="#creer-compte" className="inline-flex items-center rounded-xl bg-white text-[#0A1A40] px-5 py-3 font-semibold">Créer un compte recruteur</a>
+          </div>
+        </div>
+      </section>
+
+      {/* Presentation for recruiters/agents */}
+      <section id="apropos" className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+        <h2 className="text-3xl md:text-4xl font-bold text-[#0A1A40]">Qu’est-ce que Statisfoot ?</h2>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {[
+            {
+              title: "Détection collaborative",
+              desc: "Un réseau interne de scouts alimente la plateforme en observations terrain fiables.",
+              icon: (
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#0A1A40" strokeWidth="2"/><path d="M20 20l-4-4" stroke="#0A1A40" strokeWidth="2" strokeLinecap="round"/></svg>
+              )
+            },
+            {
+              title: "Données & vidéos",
+              desc: "Profils centralisés avec statistiques, rapports structurés et liens vidéo.",
+              icon: (
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none"><path d="M4 19V5h16v14H4z" stroke="#0A1A40" strokeWidth="2"/><path d="M8 13l3 3 5-6" stroke="#3DBEFF" strokeWidth="2"/></svg>
+              )
+            },
+            {
+              title: "Pipeline de recrutement",
+              desc: "Filtrez, suivez et contactez rapidement les profils pertinents.",
+              icon: (
+                <svg className="h-7 w-7" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M6 12h12M8 18h8" stroke="#0A1A40" strokeWidth="2" strokeLinecap="round"/></svg>
+              )
+            }
+          ].map((b, i) => (
+            <div key={i} className="rounded-2xl border border-slate-200 p-6 hover:shadow-sm transition">
+              <div className="flex items-center gap-3">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#3DBEFF]/15 text-[#0A1A40]">{b.icon}</div>
+                <h3 className="font-semibold text-lg text-[#0A1A40]">{b.title}</h3>
+              </div>
+              <p className="mt-3 text-slate-600">{b.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="bg-slate-50 py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-8 sm:grid-cols-3">
+            {[
+              {value: "+200", label: "scouts inscrits"},
+              {value: "+20%", label: "d’inscriptions en avril"},
+              {value: "5", label: "clubs partenaires"}
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <div className="text-4xl font-extrabold text-[#0A1A40]">{s.value}</div>
+                <div className="mt-1 text-slate-600">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonial - Recruiter */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid gap-8 md:grid-cols-[auto,1fr] items-center rounded-2xl border border-slate-200 p-6">
+          <img src="https://images.unsplash.com/photo-1544006659-f0b21884ce1d?q=80&w=400&auto=format&fit=crop" alt="Recruteur" className="h-28 w-28 rounded-2xl object-cover" />
+          <blockquote>
+            <p className="text-lg leading-relaxed text-slate-800">« Grâce à Statisfoot, j’ai identifié rapidement des talents dans des championnats peu médiatisés. Un outil précieux pour un recrutement moderne. »</p>
+            <footer className="mt-3 text-sm text-slate-500">Jean Mba — Recruteur</footer>
+          </blockquote>
+        </div>
+      </section>
+
+      {/* CTA banner */}
+      <section className="relative mx-4 mb-24 rounded-3xl bg-[#0A1A40] text-white">
+        <div className="mx-auto max-w-7xl px-6 py-12">
+          <h3 className="text-2xl md:text-3xl font-bold">Rejoignez la révolution du scouting en Afrique</h3>
+          <p className="mt-2 text-white/80">Demandez une démo et accédez à une base fiable de jeunes talents.</p>
+          <div className="mt-6">
+            <a href="#demo" className="inline-flex items-center rounded-xl bg-[#3DBEFF] text-[#0A1A40] px-5 py-3 font-semibold">Demander une démo</a>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-200">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between text-sm text-slate-600">
+          <div>© {new Date().getFullYear()} Statisfoot</div>
+          <nav className="flex gap-6">
+            <a href="#mentions" className="hover:text-[#0A1A40]">Mentions légales</a>
+            <a href="#contact" className="hover:text-[#0A1A40]">Contact</a>
+          </nav>
+        </div>
+      </footer>
+    </main>
+  );
+}
+
+    <script type="text/babel" src="./statisfoot.jsx"></script>
+  </body>
+</html>
