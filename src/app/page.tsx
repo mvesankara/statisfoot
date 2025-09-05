@@ -30,9 +30,9 @@ export default function Home() {
             >
               Découvrir les talents
             </a>
-            <a
+            <a 
               href="#"
-              className="inline-flex items-center rounded-xl bg-white text-primary px-5 py-3 font-semibold"
+              className="inlne-flex items-center rounded-xl bg-white text-primary px-5 py-3 font-semibold"
             >
               Créer un compte recruteur
             </a>

@@ -1,11 +1,13 @@
-// POST /api/players -> créer (scout ou admin)
-export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
+export async function GET() {
+  const players = await prisma.player.findMany();
+  return NextResponse.json(players);
+}
+
+export async function POST(req: NextRequest) {
   const data = await req.json();
-  const player = await prisma.player.create({
-    data: { ...data, creatorId: session.user.id },
-  });
-  return NextResponse.json(player);
+  const player = await prisma.player.create({ data });
+  return NextResponse.json(player, { status: 201 });
 }

@@ -1,21 +1,17 @@
-import type { Config } from "tailwindcss"
-
-const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+// tailwind.config.ts
+import type { Config } from "tailwindcss";
+export default {
+  content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        primary: "#0A1A40", // bleu nuit
-        accent: "#3DBEFF",  // bleu clair
-      },
-      borderRadius: {
-        xl: "24px",
+        brand: {
+          ink:  "#0b1d34",  // fond sombre
+          navy: "#0e2442",  // bleu principal (logo)
+          sky:  "#5bc4ff",  // bleu clair (le “is” du logo / accents)
+        },
       },
     },
   },
   plugins: [],
-}
-export default config
+} satisfies Config;

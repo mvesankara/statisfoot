@@ -1,0 +1,23 @@
+// src/app/(auth)/login/page.tsx
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import LoginForm from "./LoginForm";
+
+
+export default async function LoginPage() {
+const session = await getServerSession(authOptions);
+if (session) redirect("/app"); // redispatch par rôle
+return (
+<>
+<h1 className="text-2xl font-semibold">Connexion</h1>
+<p className="text-sm text-slate-400 mt-1">Accédez à votre espace personnel.</p>
+<LoginForm />
+<div className="mt-4 text-sm text-slate-400">
+<a href="/register" className="underline">Créer un compte</a>
+<span className="mx-2">•</span>
+<a href="/forgot-password" className="underline">Mot de passe oublié ?</a>
+</div>
+</>
+);
+}
