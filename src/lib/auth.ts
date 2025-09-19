@@ -1,41 +1,88 @@
-import type { NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { prisma } from "@/lib/prisma";
-import { compare } from "bcryptjs";
+ import type { DefaultSession, NextAuthOptions } from "next-auth";
+ import CredentialsProvider from "next-auth/providers/credentials";
+ import { compare } from "bcryptjs";
+ 
+ import { prisma } from "@/lib/prisma";
 
-export const authOptions: NextAuthOptions = {
-  session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
-  pages: { signIn: "/login" },
-  providers: [
-    CredentialsProvider({
-      name: "Email & Mot de passe",
-      credentials: { email: { label: "Email", type: "email" }, password: { label: "Mot de passe", type: "password" } },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+ declare module "next-auth" {
+   interface Session {
+     user?: DefaultSession["user"] & {
+       id: string;
+       role?: string;
+       firstname?: string | null;
+       lastname?: string | null;
+     };
+   }
+
+   interface User {
+     role?: string;
+     firstname?: string | null;
+     lastname?: string | null;
+   }
+ }
+ 
+ declare module "next-auth/jwt" {
+   interface JWT {
+     userId?: string;
+     role?: string;
+     firstname?: string | null;
+     lastname?: string | null;
+   }
+ }
+ 
+ export const authOptions: NextAuthOptions = {
+   session: { strategy: "jwt" },
+   secret: process.env.NEXTAUTH_SECRET,
+   pages: { signIn: "/login" },
+   providers: [
+     CredentialsProvider({
+       name: "Email & Mot de passe",
+       credentials: {
+         email: { label: "Email", type: "email" },
+         password: { label: "Mot de passe", type: "password" },
+       },
+       async authorize(credentials) {
+         if (!credentials?.email || !credentials?.password) return null;
+ 
         const user = await prisma.user.findUnique({ where: { email: credentials.email } });
-        if (!user || !user.password) return null;
-        const ok = await compare(credentials.password, user.password);
-        if (!ok) return null;
-        // retourne aussi le rôle
-       return { id: user.id, name: user.name ?? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim(), email: user.email, role: user.role }; 
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.userId = (user as any).id;
-        token.role = (user as any).role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      (session as any).userId = token.userId;
-      (session.user as any).firstName = user?.firstName;
-      (session.user as any).lastName  = user?.lastName;
-      (session as any).role = token.role;
-      return session;
-    },
-  },
-};
+         if (!user || !user.password) return null;
+ 
+         const ok = await compare(credentials.password, user.password);
+         if (!ok) return null;
+ 
+         return {
+           id: user.id,
+           name: user.name ?? `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim(),
+           email: user.email,
+           role: user.role,
+           firstname: user.firstname ?? null,
+           lastname: user.lastname ?? null,
+         };
+       },
+     }),
+   ],
+   callbacks: {
+     async jwt({ token, user }) {
+       if (user) {
+         token.userId = user.id as string;
+         token.role = user.role;
+         token.firstname = user.firstname ?? null;
+         token.lastname = user.lastname ?? null;
+       }
+       return token;
+     },
+     async session({ session, token }) {
+       if (session.user) {
+         if (typeof token.userId === "string") {
+           session.user.id = token.userId;
+         }
+         if (typeof token.role === "string") {
+           session.user.role = token.role;
+         }
+         session.user.firstname = token.firstname ?? null;
+         session.user.lastname = token.lastname ?? null;
+       }
+       return session;
+     },
+   },
+ };

@@ -1,50 +1,50 @@
- datasource db {
-   provider = "postgresql"
-   url      = env("DATABASE_URL")
- }
+generator client {
+  provider = "prisma-client-js"
+}
 
- generator client {
-   provider = "prisma-client-js"
- }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
- enum Role {
-   SCOUT
-   RECRUITER
-   AGENT
-   ADMIN
- }
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      Role     @default(SCOUT)
+  createdAt DateTime @default(now())
+  country   String?
+  firstname String?
+  lastname  String?
+  players   Player[] @relation("CreatedPlayers")
+  reports   Report[]
+}
 
- model User {
-   id        String   @id @default(cuid())
-   email     String   @unique
-   password  String
-   role      Role     @default(SCOUT)
-   firstname String?
-   lastname  String?
-   country   String?  // ex: "FR", "GA" ou 
-   name      String? // affichage (prenom + nom)
-   reports   Report[]
-   players   Player[] @relation("CreatedPlayers")
-   createdAt DateTime @default(now())
- }
+model Player {
+  id        String   @id @default(cuid())
+  name      String
+  position  String
+  creatorId String?
+  createdAt DateTime @default(now())
+  creator   User?    @relation("CreatedPlayers", fields: [creatorId], references: [id])
+  reports   Report[]
+}
 
- model Player {
-   id        String   @id @default(cuid())
-   name      String
-   position  String
-   creator   User?    @relation("CreatedPlayers", fields: [creatorId], references: [id])
-   creatorId String?
-   reports   Report[]
-   createdAt DateTime @default(now())
- }
+model Report {
+  id        String   @id @default(cuid())
+  content   String
+  playerId  String
+  authorId  String
+  status    String   @default("draft")
+  createdAt DateTime @default(now())
+  author    User     @relation(fields: [authorId], references: [id])
+  player    Player   @relation(fields: [playerId], references: [id])
+}
 
- model Report {
-   id        String   @id @default(cuid())
-   content   String
-   player    Player   @relation(fields: [playerId], references: [id])
-   playerId  String
-   author    User     @relation(fields: [authorId], references: [id])
-   authorId  String
-   status    String   @default("draft")
-   createdAt DateTime @default(now())
- }
+enum Role {
+  SCOUT
+  RECRUITER
+  AGENT
+  ADMIN
+}
