@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         {/* Header logo */}
         <div className="flex items-center gap-3 mb-4">
           <Image
-            src="/brand/statisfoot-logo.png"
+            src="/brand/statisfoot-logo.jpeg"
             alt="Statisfoot"
             width={44}
             height={44}
