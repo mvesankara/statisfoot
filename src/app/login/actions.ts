@@ -10,7 +10,7 @@ export async function loginAction(_: State, formData: FormData): Promise<State> 
     const email = String(formData.get("email") ?? "");
     const password = String(formData.get("password") ?? "");
     if (!email || !password) return "Veuillez remplir tous les champs";
-    await signIn("credentials", { email, password, redirect: true, redirectTo: "/" });
+    await signIn("credentials", { email, password, redirect: true, redirectTo: "/app" });
     return null;
   } catch (error) {
     if (error instanceof AuthError) {
