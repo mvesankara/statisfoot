@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { register, type State } from "@/app/register/actions";
 import { PasswordInput } from "@/components/PasswordInput";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const [error, formAction, isPending] = useActionState<State, FormData>(register, null);
@@ -28,8 +29,13 @@ export default function RegisterPage() {
 
         <div className="flex flex-col gap-1">
           <label htmlFor="country" className="text-sm text-slate-300">Pays</label>
-          <input id="country" name="country" placeholder="FR / France"
-            className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-sky" />
+          <select id="country" name="country"
+            className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-sky">
+            <option value="FR">France</option>
+            <option value="BE">Belgique</option>
+            <option value="CH">Suisse</option>
+            <option value="CA">Canada</option>
+          </select>
         </div>
 
         <div className="flex flex-col gap-1">
@@ -38,7 +44,8 @@ export default function RegisterPage() {
             className="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-sky" />
         </div>
 
-        <PasswordInput name="password" />
+        <PasswordInput name="password" required />
+        <PasswordInput name="confirmPassword" label="Confirmer le mot de passe" required />
 
         <div className="flex flex-col gap-1">
           <label htmlFor="role" className="text-sm text-slate-300">Votre profil</label>
@@ -58,6 +65,19 @@ export default function RegisterPage() {
         </button>
         {error && <p className="text-red-400 text-sm">{error}</p>}
       </form>
+      <div className="mt-4 flex items-center gap-4">
+        <hr className="w-full" />
+        <span className="text-sm text-slate-400">OU</span>
+        <hr className="w-full" />
+      </div>
+      <div className="mt-4">
+        <button
+          onClick={() => signIn("google")}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2 font-medium text-slate-100 hover:opacity-90"
+        >
+          Continuer avec Google
+        </button>
+      </div>
     </>
   );
 }
