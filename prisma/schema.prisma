@@ -17,6 +17,10 @@ model User {
   country   String?
   firstname String?
   lastname  String?
+  passwordResetToken String?
+  passwordResetTokenExpiry DateTime?
+  emailVerified DateTime?
+  emailVerificationToken String?
   players   Player[] @relation("CreatedPlayers")
   reports   Report[]
 }

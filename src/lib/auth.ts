@@ -1,5 +1,6 @@
  import type { DefaultSession, NextAuthOptions } from "next-auth";
  import CredentialsProvider from "next-auth/providers/credentials";
+ import GoogleProvider from "next-auth/providers/google";
  import { compare } from "bcryptjs";
  
  import { prisma } from "@/lib/prisma";
@@ -11,6 +12,7 @@
        role?: string;
        firstname?: string | null;
        lastname?: string | null;
+       emailVerified?: Date | null;
      };
    }
 
@@ -18,6 +20,7 @@
      role?: string;
      firstname?: string | null;
      lastname?: string | null;
+     emailVerified?: Date | null;
    }
  }
  
@@ -27,6 +30,7 @@
      role?: string;
      firstname?: string | null;
      lastname?: string | null;
+     emailVerified?: Date | null;
    }
  }
  
@@ -35,6 +39,10 @@
    secret: process.env.NEXTAUTH_SECRET,
    pages: { signIn: "/login" },
    providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
      CredentialsProvider({
        name: "Email & Mot de passe",
        credentials: {
@@ -57,6 +65,7 @@
            role: user.role,
            firstname: user.firstname ?? null,
            lastname: user.lastname ?? null,
+           emailVerified: user.emailVerified ?? null,
          };
        },
      }),
@@ -68,6 +77,7 @@
          token.role = user.role;
          token.firstname = user.firstname ?? null;
          token.lastname = user.lastname ?? null;
+         token.emailVerified = user.emailVerified ?? null;
        }
        return token;
      },
@@ -81,6 +91,7 @@
          }
          session.user.firstname = token.firstname ?? null;
          session.user.lastname = token.lastname ?? null;
+         session.user.emailVerified = token.emailVerified ?? null;
        }
        return session;
      },

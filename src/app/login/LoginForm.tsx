@@ -3,18 +3,9 @@
 import { useActionState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { loginAction } from "./actions";
 
 type State = string | null;
-
-async function loginAction(_: State, formData: FormData): Promise<State> {
-  const email = String(formData.get("email") ?? "");
-  const password = String(formData.get("password") ?? "");
-  if (!email || !password) return "Veuillez remplir tous les champs";
-  const res = await signIn("credentials", { redirect: false, email, password });
-  if (!res) return "Erreur inattendue";
-  if (res.error) return "Identifiants invalides";
-  return null;
-}
 
 export default function LoginForm() {
   const router = useRouter();
@@ -42,6 +33,19 @@ export default function LoginForm() {
         </button>
         {error && <p className="text-red-500">{error}</p>}
       </form>
+      <div className="mt-4 flex items-center gap-4">
+        <hr className="w-full" />
+        <span className="text-sm text-slate-400">OU</span>
+        <hr className="w-full" />
+      </div>
+      <div className="mt-4">
+        <button
+          onClick={() => signIn("google")}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2 font-medium text-slate-100 hover:opacity-90"
+        >
+          Continuer avec Google
+        </button>
+      </div>
       <div className="mt-4 text-sm">
         <a href="/register" className="underline">Créer un compte</a>
         <span className="mx-2">•</span>
