@@ -10,7 +10,7 @@ type State = string | null;
 export default function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const callbackUrl = search.get("callbackUrl") || "/";
+  const callbackUrl = search.get("callbackUrl") || "/app";
   const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
   const [submitting, startTransition] = useTransition();
 
