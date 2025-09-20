@@ -1,4 +1,4 @@
- import type { DefaultSession, NextAuthOptions } from "next-auth";
+ import NextAuth, { type DefaultSession, type NextAuthOptions } from "next-auth";
  import CredentialsProvider from "next-auth/providers/credentials";
  import GoogleProvider from "next-auth/providers/google";
  import { compare } from "bcryptjs";
@@ -97,3 +97,10 @@
      },
    },
  };
+
+ export const {
+   handlers: { GET, POST },
+   auth,
+   signIn,
+   signOut,
+ } = NextAuth(authOptions);
