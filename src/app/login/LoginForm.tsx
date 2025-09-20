@@ -1,35 +1,22 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { loginAction } from "./actions";
 
 type State = string | null;
 
 export default function LoginForm() {
-  const router = useRouter();
-  const search = useSearchParams();
-  const callbackUrl = search.get("callbackUrl") || "/";
   const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
-  const [submitting, startTransition] = useTransition();
 
   return (
     <main className="max-w-md mx-auto mt-10">
       <h1 className="text-2xl font-semibold mb-4">Connexion</h1>
-      <form
-        action={(fd) =>
-          startTransition(async () => {
-            const err = await formAction(fd);
-            if (!err) router.replace(callbackUrl);
-          })
-        }
-        className="flex flex-col gap-4"
-      >
+      <form action={formAction} className="flex flex-col gap-4">
         <input name="email" type="email" placeholder="Email" required className="border p-2" />
         <input name="password" type="password" placeholder="Mot de passe" required className="border p-2" />
-        <button type="submit" className="bg-primary text-white px-4 py-2 disabled:opacity-60" disabled={isPending || submitting}>
-          {isPending || submitting ? "Connexion..." : "Se connecter"}
+        <button type="submit" className="bg-primary text-white px-4 py-2 disabled:opacity-60" disabled={isPending}>
+          {isPending ? "Connexion..." : "Se connecter"}
         </button>
         {error && <p className="text-red-500">{error}</p>}
       </form>
