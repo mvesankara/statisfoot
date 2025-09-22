@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StatisFoot - Plateforme d'Analyse de Joueurs
 
-## Getting Started
+StatisFoot est une application web conçue pour les recruteurs, agents et scouts de football. Elle permet de créer, gérer et consulter des rapports d'analyse sur des joueurs de football, facilitant ainsi le processus de recrutement et de suivi des talents.
 
-First, run the development server:
+## Fonctionnalités
+
+- **Gestion des utilisateurs** : Inscription, connexion, et gestion de profils avec différents rôles (Scout, Recruteur, Agent, Admin).
+- **Création de joueurs** : Ajoutez de nouveaux joueurs à la base de données.
+- **Rapports détaillés** : Rédigez des rapports complets sur les joueurs, avec la possibilité de les sauvegarder comme brouillons ou de les publier.
+- **Contrôle d'accès basé sur les rôles (RBAC)** : Des permissions spécifiques sont attribuées à chaque rôle pour garantir la sécurité et la confidentialité des données.
+- **Tableau de bord** : Une vue d'ensemble des activités récentes, des rapports et des joueurs.
+
+## Technologies utilisées
+
+- **Framework frontend et backend** : [Next.js](https://nextjs.org/)
+- **Base de données** : [PostgreSQL](https://www.postgresql.org/)
+- **ORM** : [Prisma](https://www.prisma.io/)
+- **Authentification** : [NextAuth.js](https://next-auth.js.org/)
+- **Styling** : [Tailwind CSS](https://tailwindcss.com/)
+- **Langage** : [TypeScript](https://www.typescriptlang.org/)
+
+## Configuration et Installation
+
+Pour lancer le projet en local, suivez les étapes ci-dessous.
+
+### Prérequis
+
+- [Node.js](https://nodejs.org/) (version 20 ou supérieure)
+- [npm](https://www.npmjs.com/) ou un autre gestionnaire de paquets
+- Une instance de [PostgreSQL](https://www.postgresql.org/download/)
+
+### Étapes d'installation
+
+1.  **Clonez le dépôt** :
+    ```bash
+    git clone <URL_DU_DEPOT>
+    cd statisfoot
+    ```
+
+2.  **Installez les dépendances** :
+    ```bash
+    npm install
+    ```
+
+3.  **Configurez les variables d'environnement** :
+    Créez un fichier `.env` à la racine du projet en vous basant sur le fichier `.env.example` (s'il existe). Remplissez les variables d'environnement nécessaires, notamment :
+
+    ```env
+    DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
+    NEXTAUTH_URL="http://localhost:3000"
+    NEXTAUTH_SECRET="votre_secret_ici"
+    GOOGLE_CLIENT_ID="votre_client_id_google"
+    GOOGLE_CLIENT_SECRET="votre_secret_client_google"
+    ```
+
+4.  **Appliquez les migrations de la base de données** :
+    Cette commande va créer les tables nécessaires dans votre base de données en se basant sur le schéma Prisma.
+
+    ```bash
+    npx prisma migrate dev
+    ```
+
+5.  **Lancez le serveur de développement** :
+    ```bash
+    npm run dev
+    ```
+
+L'application sera alors accessible à l'adresse [http://localhost:3000](http://localhost:3000).
+
+## Lancer en production
+
+Pour construire et lancer l'application en mode production, utilisez les commandes suivantes :
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Structure du projet
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Le projet suit la structure de l'App Router de Next.js :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   `src/app` : Contient les pages, les layouts et les routes de l'API.
+-   `src/components` : Contient les composants React réutilisables.
+-   `src/lib` : Contient les librairies et les fonctions utilitaires (authentification, base de données, etc.).
+-   `prisma` : Contient le schéma de la base de données (`schema.prisma`) et les migrations.
+-   `public` : Contient les fichiers statiques (images, polices, etc.).

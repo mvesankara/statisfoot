@@ -1,8 +1,17 @@
 // src/components/PasswordInput.tsx
 "use client";
 import { useState } from "react";
+
 type Props = React.InputHTMLAttributes<HTMLInputElement> & { label?: string; name: string; };
 
+/**
+ * @component PasswordInput
+ * @description Un champ de saisie de mot de passe avec un bouton pour afficher/masquer le mot de passe.
+ * @param {Props} props - Les props du composant, qui incluent les attributs standard d'un input HTML.
+ * @param {string} [props.label="Mot de passe"] - Le libellé du champ de saisie.
+ * @param {string} props.name - Le nom du champ, utilisé pour l'id et le htmlFor du label.
+ * @returns {JSX.Element} Le composant du champ de mot de passe.
+ */
 export function PasswordInput({ label = "Mot de passe", name, ...rest }: Props) {
   const [show, setShow] = useState(false);
   return (

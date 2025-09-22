@@ -6,6 +6,13 @@ import { loginAction } from "./actions";
 
 type State = string | null;
 
+/**
+ * @component LoginForm
+ * @description Fournit un formulaire de connexion pour les utilisateurs avec email/mot de passe,
+ * ainsi qu'une option de connexion via Google.
+ * Gère l'état du formulaire (en attente, erreur) en utilisant `useActionState` avec une Server Action.
+ * @returns {JSX.Element} Le composant du formulaire de connexion.
+ */
 export default function LoginForm() {
   const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
 

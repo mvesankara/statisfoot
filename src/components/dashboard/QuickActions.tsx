@@ -6,6 +6,11 @@ const actions = [
   { label: "Importer une vidéo", href: "#" },
 ];
 
+/**
+ * @component QuickActions
+ * @description Affiche une liste d'actions rapides sous forme de boutons sur le tableau de bord.
+ * @returns {JSX.Element} Le composant des actions rapides.
+ */
 export function QuickActions() {
   return (
     <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6">

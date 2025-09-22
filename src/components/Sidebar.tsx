@@ -13,6 +13,12 @@ const navItems = [
   "Paramètres",
 ];
 
+/**
+ * @component Sidebar
+ * @description Affiche la barre latérale de navigation de l'application.
+ * Contient le logo, les liens de navigation principaux et les informations de l'utilisateur connecté.
+ * @returns {JSX.Element} Le composant de la barre latérale.
+ */
 export function Sidebar() {
   const { data: session } = useSession();
 

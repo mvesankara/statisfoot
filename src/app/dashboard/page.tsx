@@ -7,6 +7,11 @@ import { KpiCharts } from "@/components/dashboard/KpiCharts";
 import { QuickFavorites } from "@/components/dashboard/QuickFavorites";
 import { ReportRequests } from "@/components/dashboard/ReportRequests";
 
+/**
+ * @component ScoutDashboard
+ * @description Affiche le tableau de bord spécifique pour les utilisateurs avec le rôle "SCOUT".
+ * @returns {JSX.Element} Le tableau de bord pour les scouts.
+ */
 function ScoutDashboard() {
   return (
     <div>
@@ -34,6 +39,11 @@ function ScoutDashboard() {
 
 import { PlayerFilters } from "@/components/dashboard/PlayerFilters";
 
+/**
+ * @component RecruiterAgentDashboard
+ * @description Affiche le tableau de bord pour les utilisateurs avec les rôles "RECRUITER" ou "AGENT".
+ * @returns {JSX.Element} Le tableau de bord pour les recruteurs et agents.
+ */
 function RecruiterAgentDashboard() {
   return (
     <div>
@@ -47,6 +57,13 @@ function RecruiterAgentDashboard() {
   );
 }
 
+/**
+ * @page DashboardPage
+ * @description Page principale du tableau de bord.
+ * Récupère la session de l'utilisateur et affiche le tableau de bord correspondant à son rôle.
+ * Redirige vers la page de connexion si l'utilisateur n'est pas authentifié.
+ * @returns {Promise<JSX.Element>} Le composant de la page du tableau de bord.
+ */
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 

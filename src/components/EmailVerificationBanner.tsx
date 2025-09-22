@@ -3,9 +3,20 @@
 import { resendVerificationEmail } from "@/app/actions/resendVerificationEmail";
 import { useTransition } from "react";
 
+/**
+ * @component EmailVerificationBanner
+ * @description Affiche une bannière invitant l'utilisateur à vérifier son adresse e-mail.
+ * La bannière contient un bouton pour renvoyer l'e-mail de vérification.
+ * @returns {JSX.Element} Le composant de la bannière de vérification d'e-mail.
+ */
 export function EmailVerificationBanner() {
   const [isPending, startTransition] = useTransition();
 
+  /**
+   * @function handleResend
+   * @description Gère le clic sur le bouton "Renvoyer l'email".
+   * Appelle la Server Action `resendVerificationEmail` dans une transition pour éviter de bloquer l'interface utilisateur.
+   */
   const handleResend = () => {
     startTransition(async () => {
       await resendVerificationEmail();

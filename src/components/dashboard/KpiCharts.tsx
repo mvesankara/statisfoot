@@ -71,6 +71,12 @@ const options = {
   },
 };
 
+/**
+ * @component KpiCharts
+ * @description Affiche un graphique en barres des indicateurs de performance clés (KPIs) pour le tableau de bord.
+ * Utilise Chart.js pour le rendu du graphique.
+ * @returns {JSX.Element} Le composant du graphique KPI.
+ */
 export function KpiCharts() {
   return (
     <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6 h-full">

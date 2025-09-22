@@ -2,6 +2,12 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+/**
+ * @page AdminDashboard
+ * @description Page du tableau de bord pour les administrateurs.
+ * Affiche des statistiques globales sur l'application (nombre d'utilisateurs, de rapports, de joueurs).
+ * @returns {Promise<JSX.Element>} Le composant de la page du tableau de bord administrateur.
+ */
 export default async function AdminDashboard() {
   const [users, reports, players] = await Promise.all([
     prisma.user.count(),

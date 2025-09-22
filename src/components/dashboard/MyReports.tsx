@@ -5,6 +5,12 @@ const reports = [
   { id: 4, status: "Rejeté", date: "2023-10-21", player: "Jude Bellingham", club: "Real Madrid" },
 ];
 
+/**
+ * @component MyReports
+ * @description Affiche un tableau des rapports de l'utilisateur sur le tableau de bord.
+ * Les données sont actuellement statiques mais sont destinées à être remplacées par des données dynamiques.
+ * @returns {JSX.Element} Le composant du tableau des rapports.
+ */
 export function MyReports() {
   return (
     <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6">

@@ -13,7 +13,16 @@
    description: "Statisfoot - The future of football scouting.",
  };
  
- export default async function RootLayout({
+ /**
+ * @component RootLayout
+ * @description Layout racine de l'application. Il enveloppe toutes les pages.
+ * Il configure la langue, la police, et inclut le `Providers` pour le contexte (comme NextAuth).
+ * Affiche également une bannière de vérification d'e-mail si nécessaire.
+ * @param {object} props - Les props du composant.
+ * @param {React.ReactNode} props.children - Les pages enfants rendues par Next.js.
+ * @returns {Promise<JSX.Element>} Le layout racine de l'application.
+ */
+export default async function RootLayout({
    children,
  }: Readonly<{
    children: React.ReactNode;

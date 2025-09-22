@@ -4,7 +4,13 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import LoginForm from "./LoginForm";
 
-
+/**
+ * @page LoginPage
+ * @description Page de connexion pour les utilisateurs.
+ * Si l'utilisateur est déjà connecté, il est redirigé vers la page principale de l'application.
+ * Affiche le formulaire de connexion (`LoginForm`).
+ * @returns {Promise<JSX.Element>} Le composant de la page de connexion.
+ */
 export default async function LoginPage() {
 const session = await getServerSession(authOptions);
 if (session) redirect("/app"); // redispatch par rôle

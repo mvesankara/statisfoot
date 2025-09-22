@@ -6,6 +6,15 @@ import { sendPasswordResetEmail } from "@/lib/email";
 
 export type State = string | null;
 
+/**
+ * @async
+ * @function forgotPassword
+ * @description Server Action pour gérer la demande de réinitialisation de mot de passe.
+ * Génère un jeton de réinitialisation, le stocke en base de données et envoie un e-mail à l'utilisateur.
+ * @param {State} prevState - L'état précédent (utilisé pour afficher les messages).
+ * @param {FormData} formData - Les données du formulaire.
+ * @returns {Promise<State>} Un message de confirmation.
+ */
 export async function forgotPassword(prevState: State, formData: FormData): Promise<State> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
 
