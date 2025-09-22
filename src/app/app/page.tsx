@@ -4,9 +4,9 @@
 
  
  const ROLE_REDIRECT: Record<string, string> = {
-   SCOUT: "/scout",
-   RECRUITER: "/recruiter",
-   AGENT: "/agent",
+   SCOUT: "/reports/new",
+   RECRUITER: "/reports/new",
+   AGENT: "/reports/new",
    ADMIN: "/admin",
  };
  
