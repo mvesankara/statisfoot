@@ -9,5 +9,6 @@ body {
 }
 
 body {
-  @apply bg-gradient-to-br from-dark-start to-dark-end text-slate-300;
+  background-image: linear-gradient(to bottom right, theme('colors.dark-start'), theme('colors.dark-end'));
+  color: theme('colors.slate.300');
 }

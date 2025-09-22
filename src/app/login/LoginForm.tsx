@@ -1,18 +1,48 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { loginAction } from "./actions";
-
-type State = string | null;
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
-  const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setIsPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    if (!email || !password) {
+      setError("Veuillez remplir tous les champs");
+      setIsPending(false);
+      return;
+    }
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (result?.error) {
+      setError("Identifiants invalides.");
+      setIsPending(false);
+    } else if (result?.ok) {
+      // Redirect to the dashboard on successful login
+      router.push("/dashboard");
+    }
+  };
 
   return (
     <main className="max-w-md mx-auto mt-10">
       <h1 className="text-2xl font-semibold mb-4">Connexion</h1>
-      <form action={formAction} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input name="email" type="email" placeholder="Email" required className="border p-2" />
         <input name="password" type="password" placeholder="Mot de passe" required className="border p-2" />
         <button type="submit" className="bg-primary text-white px-4 py-2 disabled:opacity-60" disabled={isPending}>
