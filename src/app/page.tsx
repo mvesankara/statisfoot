@@ -1,5 +1,11 @@
 import { Navbar } from "@/components/Navbar";
 
+/**
+ * @page Home
+ * @description La page d'accueil (landing page) de l'application Statisfoot.
+ * Elle présente l'application, ses fonctionnalités et des appels à l'action.
+ * @returns {JSX.Element} Le composant de la page d'accueil.
+ */
 export default function Home() {
   return (
     <main className="min-h-screen bg-white text-slate-900">

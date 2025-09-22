@@ -1,3 +1,9 @@
+/**
+ * @component Header
+ * @description Affiche l'en-tête principal de l'application, qui contient une barre de recherche,
+ * une icône de notification et l'avatar de l'utilisateur.
+ * @returns {JSX.Element} Le composant de l'en-tête.
+ */
 export function Header() {
   return (
     <header className="h-16 bg-dark-start/30 backdrop-blur-sm border-b border-white/10 flex items-center px-6">

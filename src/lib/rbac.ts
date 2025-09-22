@@ -1,5 +1,14 @@
+/**
+ * @file Configuration du Contrôle d'Accès Basé sur les Rôles (RBAC).
+ * @description Ce fichier définit les rôles, les permissions, et la relation entre eux (grants).
+ * Il fournit également une fonction pour vérifier si un rôle possède une permission spécifique.
+ */
 import type { Role } from "@prisma/client";
 
+/**
+ * @const {object} ROLES
+ * @description Énumération des rôles disponibles dans l'application.
+ */
 export const ROLES = {
   SCOUT: "SCOUT",
   RECRUITER: "RECRUITER",
@@ -7,6 +16,10 @@ export const ROLES = {
   ADMIN: "ADMIN",
 } as const;
 
+/**
+ * @const {object} PERMISSIONS
+ * @description Énumération des permissions définies pour les actions dans l'application.
+ */
 export const PERMISSIONS = {
   "players:read": "players:read",
   "players:create": "players:create",
@@ -19,6 +32,10 @@ export const PERMISSIONS = {
   "admin:access": "admin:access",
 } as const;
 
+/**
+ * @const {Record<Role, (keyof typeof PERMISSIONS)[]>} GRANTS
+ * @description Mappe chaque rôle à un tableau de permissions qui lui sont accordées.
+ */
 export const GRANTS: Record<Role, (keyof typeof PERMISSIONS)[]> = {
   [ROLES.SCOUT]: [PERMISSIONS["players:read"], PERMISSIONS["reports:create"]],
   [ROLES.RECRUITER]: [
@@ -35,6 +52,13 @@ export const GRANTS: Record<Role, (keyof typeof PERMISSIONS)[]> = {
   [ROLES.ADMIN]: Object.values(PERMISSIONS),
 };
 
+/**
+ * @function hasPermission
+ * @description Vérifie si un rôle donné possède une permission spécifique.
+ * @param {Role} role - Le rôle de l'utilisateur.
+ * @param {keyof typeof PERMISSIONS} permission - La permission à vérifier.
+ * @returns {boolean} `true` si le rôle a la permission, sinon `false`.
+ */
 export function hasPermission(role: Role, permission: keyof typeof PERMISSIONS) {
   return GRANTS[role]?.includes(permission) ?? false;
 }

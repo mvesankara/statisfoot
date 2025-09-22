@@ -2,6 +2,14 @@ import Image from "next/image";
 import RadarChart from "@/components/RadarChart";
 import KpiCard from "@/components/KpiCard";
 
+/**
+ * @async
+ * @function getPlayer
+ * @description Récupère les données d'un joueur par son ID.
+ * Actuellement, utilise des données statiques en guise de placeholder.
+ * @param {string} id - L'ID du joueur à récupérer.
+ * @returns {Promise<object>} Un objet contenant les informations du joueur.
+ */
 async function getPlayer(id: string) {
   // Placeholder data; replace with real fetch to your API
   return {
@@ -39,6 +47,16 @@ async function getPlayer(id: string) {
   };
 }
 
+/**
+ * @page PlayerProfile
+ * @description Page de profil d'un joueur.
+ * Affiche des informations détaillées sur un joueur, y compris ses statistiques,
+ * des graphiques, des rapports et des informations contractuelles.
+ * @param {object} props - Les props de la page.
+ * @param {object} props.params - Les paramètres de la route dynamique.
+ * @param {string} props.params.id - L'ID du joueur.
+ * @returns {Promise<JSX.Element>} Le composant de la page de profil du joueur.
+ */
 export default async function PlayerProfile({ params }: { params: { id: string } }) {
   const player = await getPlayer(params.id);
 

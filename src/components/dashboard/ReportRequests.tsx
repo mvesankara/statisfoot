@@ -17,6 +17,13 @@ const columns = [
   { id: "inReview", title: "En attente de review", requests: requests.inReview },
 ];
 
+/**
+ * @component ReportRequests
+ * @description Affiche un tableau de bord de type Kanban pour les demandes de rapports personnels.
+ * Les demandes sont organisées en colonnes (Ouvert, En cours, En attente de review).
+ * Les données sont actuellement statiques.
+ * @returns {JSX.Element} Le composant des demandes de rapports.
+ */
 export function ReportRequests() {
   return (
     <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6">

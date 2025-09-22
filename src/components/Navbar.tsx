@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 
+/**
+ * @component Navbar
+ * @description Affiche la barre de navigation principale de l'application.
+ * Gère l'affichage des liens en fonction de l'état d'authentification de l'utilisateur (connecté ou non).
+ * Inclut une version mobile responsive.
+ * @returns {JSX.Element} Le composant de la barre de navigation.
+ */
 export function Navbar() {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);

@@ -1,3 +1,9 @@
+/**
+ * @component PlayerFilters
+ * @description Affiche un ensemble de filtres pour la recherche de joueurs.
+ * Inclut des filtres par poste, âge, pays et niveau.
+ * @returns {JSX.Element} Le composant des filtres de joueurs.
+ */
 export function PlayerFilters() {
   return (
     <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6">

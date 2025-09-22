@@ -1,6 +1,14 @@
 import { Header } from "@/components/Header";
 import { Sidebar } from "@/components/Sidebar";
 
+/**
+ * @component DashboardLayout
+ * @description Layout pour les pages du tableau de bord.
+ * Il inclut la barre latérale (`Sidebar`) et l'en-tête (`Header`).
+ * @param {object} props - Les props du composant.
+ * @param {React.ReactNode} props.children - Les pages enfants du tableau de bord.
+ * @returns {JSX.Element} Le layout du tableau de bord.
+ */
 export default function DashboardLayout({
   children,
 }: {

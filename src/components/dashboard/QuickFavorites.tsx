@@ -4,6 +4,12 @@ const favoritePlayers = [
   { id: 3, name: "Jude Bellingham", age: 20, position: "Milieu Offensif", lastReport: "2023-10-21", avatar: "/path/to/avatar3.png" },
 ];
 
+/**
+ * @component QuickFavorites
+ * @description Affiche une liste des joueurs favoris de l'utilisateur sur le tableau de bord.
+ * Les données sont actuellement statiques.
+ * @returns {JSX.Element} Le composant de la liste des favoris.
+ */
 export function QuickFavorites() {
   return (
     <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6 h-full">

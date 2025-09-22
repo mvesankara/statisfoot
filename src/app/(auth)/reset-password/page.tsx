@@ -5,6 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { resetPassword, type State } from "@/app/reset-password/actions";
 import { PasswordInput } from "@/components/PasswordInput";
 
+/**
+ * @page ResetPasswordPage
+ * @description Page de réinitialisation du mot de passe.
+ * Affiche un formulaire où l'utilisateur peut entrer et confirmer son nouveau mot de passe.
+ * Le jeton de réinitialisation est lu depuis les paramètres de l'URL.
+ * @returns {JSX.Element} Le composant de la page de réinitialisation de mot de passe.
+ */
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
