@@ -46,15 +46,14 @@ export function Navbar() {
 
         {/* Navigation desktop */}
         <nav className="hidden md:flex items-center gap-6 text-sm">
-          <a href="#" className="hover:text-primary text-slate-600">
-            Scouts
-          </a>
-          <a href="#" className="hover:text-primary text-slate-600">
-            Recruteurs
-          </a>
-          <a href="#" className="hover:text-primary text-slate-600">
-            Agents
-          </a>
+          {session && (
+            <a
+              href="/reports/new"
+              className="hover:text-primary text-slate-600"
+            >
+              Nouveau rapport
+            </a>
+          )}
           {session ? (
             <>
               <a href="/profile" className="hover:text-primary text-slate-600">
@@ -82,15 +81,14 @@ export function Navbar() {
       {open && (
         <div className="md:hidden border-t border-slate-200 bg-white">
           <nav className="px-4 py-4 flex flex-col gap-4 text-sm">
-            <a href="#" className="hover:text-primary text-slate-700">
-              Scouts
-            </a>
-            <a href="#" className="hover:text-primary text-slate-700">
-              Recruteurs
-            </a>
-            <a href="#" className="hover:text-primary text-slate-700">
-              Agents
-            </a>
+            {session && (
+              <a
+                href="/reports/new"
+                className="hover:text-primary text-slate-700"
+              >
+                Nouveau rapport
+              </a>
+            )}
             {session ? (
               <>
                 <a href="/profile" className="hover:text-primary text-slate-700">
