@@ -34,7 +34,9 @@ declare module "next-auth/jwt" {
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
+  // IMPORTANT: NextAuth.js v5 (auth.js) requires the secret to be provided via the AUTH_SECRET environment variable.
+  // The old NEXTAUTH_SECRET variable (used in v4) will not work.
+  secret: process.env.AUTH_SECRET,
   pages: { signIn: "/login" },
   providers: [
     Google({
