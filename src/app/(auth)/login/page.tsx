@@ -1,6 +1,6 @@
 // src/app/(auth)/login/page.tsx
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import LoginForm from "./LoginForm";
 
@@ -12,7 +12,7 @@ import LoginForm from "./LoginForm";
  * @returns {Promise<JSX.Element>} Le composant de la page de connexion.
  */
 export default async function LoginPage() {
-const session = await getServerSession(authOptions);
+const session = await getServerSession(auth);
 if (session) redirect("/app"); // redispatch par rôle
 return (
 <>
