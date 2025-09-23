@@ -2,7 +2,6 @@
  import { Inter } from "next/font/google";
  import "./globals.css";
  import  Providers  from "./providers";
- import { getServerSession } from "next-auth";
  import { auth } from "@/lib/auth";
  import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
  
@@ -27,7 +26,7 @@ export default async function RootLayout({
  }: Readonly<{
    children: React.ReactNode;
  }>) {
-   const session = await getServerSession(auth);
+   const session = await auth();
 
    return (
      <html lang="fr">

@@ -6,8 +6,8 @@
  * si son adresse e-mail n'est pas encore vérifiée.
  */
 
-import { getServerSession } from "next-auth";
 import { auth } from "@/lib/auth";
+import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "@/lib/email";
@@ -21,7 +21,7 @@ import { sendVerificationEmail } from "@/lib/email";
  * @throws {Error} Si l'e-mail de l'utilisateur est déjà vérifié.
  */
 export async function resendVerificationEmail() {
-  const session = await getServerSession(auth);
+  const session = await auth();
 
   if (!session?.user) {
     throw new Error("Vous devez être connecté pour effectuer cette action.");
