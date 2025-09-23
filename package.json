@@ -13,7 +13,7 @@
       "bcryptjs": "^2.4.3",
       "chart.js": "^4.4.0",
       "next": "15.5.2",
-      "next-auth": "^4.24.11",
+      "next-auth": "latest",
       "nodemailer": "^6.10.1",
       "react": "^18.2.0",
       "react-chartjs-2": "^5.2.0",
