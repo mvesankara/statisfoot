@@ -32,7 +32,12 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+const {
+  auth,
+  signIn,
+  signOut,
+  handlers: { GET, POST },
+} = NextAuth({
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   pages: { signIn: "/login" },
@@ -90,3 +95,5 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export { auth, signIn, signOut, GET, POST };
