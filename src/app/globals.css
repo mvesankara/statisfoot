@@ -1,6 +1,17 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@theme {
+  --color-dark-start: #0B1D34;
+  --color-dark-end:   #0E2442;
+  --color-accent:     #5BC4FF;
+  --color-success:    #10B981;
+  --color-warning:    #F59E0B;
+  --color-danger:     #EF4444;
+  --color-info:       #38BDF8;
+}
 
 html,
 body {
