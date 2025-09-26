@@ -1,3 +1,8 @@
+/**
+ * @component Hero
+ * @description Affiche la section "héros" de la page d'accueil, avec un titre accrocheur et des boutons d'appel à l'action.
+ * @returns {JSX.Element} Le composant de la section "héros".
+ */
 export function Hero() {
   return (
     <section className="relative isolate overflow-hidden bg-primary text-white">

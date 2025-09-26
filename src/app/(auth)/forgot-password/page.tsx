@@ -3,6 +3,13 @@
 import { useActionState } from "react";
 import { forgotPassword, type State } from "@/app/forgot-password/actions";
 
+/**
+ * @page ForgotPasswordPage
+ * @description Page de demande de réinitialisation de mot de passe.
+ * Affiche un formulaire où l'utilisateur peut entrer son adresse e-mail
+ * pour recevoir un lien de réinitialisation.
+ * @returns {JSX.Element} Le composant de la page de mot de passe oublié.
+ */
 export default function ForgotPasswordPage() {
   const [message, formAction, isPending] = useActionState<State, FormData>(forgotPassword, null);
 

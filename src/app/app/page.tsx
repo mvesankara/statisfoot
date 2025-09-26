@@ -1,23 +1,19 @@
- import { redirect } from "next/navigation";
- import { getServerSession } from "next-auth";
- import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 
- 
- const ROLE_REDIRECT: Record<string, string> = {
-   SCOUT: "/scout",
-   RECRUITER: "/recruiter",
-   AGENT: "/agent",
-   ADMIN: "/admin",
- };
- 
- export default async function AppRedirect() {
-   const session = await getServerSession(authOptions);
- 
+/**
+ * This component acts as a server-side gate for logged-in users.
+ * It ensures a session exists, and if so, redirects to the main dashboard.
+ * The old role-based redirect logic is now obsolete with the new unified dashboard.
+ */
+export default async function AppGate() {
+  const session = await auth();
+
   if (!session) {
-     redirect("/login");
-   }
+    // Should be caught by middleware, but as a fallback.
+    redirect("/login");
+  }
 
-   const role = session.user?.role ?? "SCOUT";
-
-   redirect(ROLE_REDIRECT[role] ?? "/");
- }
+  // Redirect all authenticated users to the new dashboard.
+  redirect("/dashboard");
+}

@@ -1,35 +1,61 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { FormEvent, useState } from "react";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { loginAction } from "./actions";
 
-type State = string | null;
-
+/**
+ * @component LoginForm
+ * @description Fournit un formulaire de connexion pour les utilisateurs avec email/mot de passe,
+ * ainsi qu'une option de connexion via Google.
+ * Gère localement l'état du formulaire pour afficher les messages d'erreur et le statut de chargement.
+ * @returns {JSX.Element} Le composant du formulaire de connexion.
+ */
 export default function LoginForm() {
   const router = useRouter();
-  const search = useSearchParams();
-  const callbackUrl = search.get("callbackUrl") || "/app";
-  const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
-  const [submitting, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+    setIsPending(true);
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    if (!email || !password) {
+      setError("Veuillez remplir tous les champs");
+      setIsPending(false);
+      return;
+    }
+
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+      callbackUrl: "/app",
+    });
+
+    if (res?.error) {
+      setError("Identifiants invalides");
+      setIsPending(false);
+      return;
+    }
+
+    router.push(res?.url ?? "/app");
+    router.refresh();
+  };
 
   return (
     <main className="max-w-md mx-auto mt-10">
       <h1 className="text-2xl font-semibold mb-4">Connexion</h1>
-      <form
-        action={(fd) =>
-          startTransition(async () => {
-            const err = await formAction(fd);
-            if (!err) router.replace(callbackUrl);
-          })
-        }
-        className="flex flex-col gap-4"
-      >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input name="email" type="email" placeholder="Email" required className="border p-2" />
         <input name="password" type="password" placeholder="Mot de passe" required className="border p-2" />
-        <button type="submit" className="bg-primary text-white px-4 py-2 disabled:opacity-60" disabled={isPending || submitting}>
-          {isPending || submitting ? "Connexion..." : "Se connecter"}
+        <button type="submit" className="bg-primary text-white px-4 py-2 disabled:opacity-60" disabled={isPending}>
+          {isPending ? "Connexion..." : "Se connecter"}
         </button>
         {error && <p className="text-red-500">{error}</p>}
       </form>

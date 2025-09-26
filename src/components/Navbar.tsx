@@ -3,6 +3,13 @@
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 
+/**
+ * @component Navbar
+ * @description Affiche la barre de navigation principale de l'application.
+ * Gère l'affichage des liens en fonction de l'état d'authentification de l'utilisateur (connecté ou non).
+ * Inclut une version mobile responsive.
+ * @returns {JSX.Element} Le composant de la barre de navigation.
+ */
 export function Navbar() {
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
@@ -46,15 +53,14 @@ export function Navbar() {
 
         {/* Navigation desktop */}
         <nav className="hidden md:flex items-center gap-6 text-sm">
-          <a href="#" className="hover:text-primary text-slate-600">
-            Scouts
-          </a>
-          <a href="#" className="hover:text-primary text-slate-600">
-            Recruteurs
-          </a>
-          <a href="#" className="hover:text-primary text-slate-600">
-            Agents
-          </a>
+          {session && (
+            <a
+              href="/reports/new"
+              className="hover:text-primary text-slate-600"
+            >
+              Nouveau rapport
+            </a>
+          )}
           {session ? (
             <>
               <a href="/profile" className="hover:text-primary text-slate-600">
@@ -82,15 +88,14 @@ export function Navbar() {
       {open && (
         <div className="md:hidden border-t border-slate-200 bg-white">
           <nav className="px-4 py-4 flex flex-col gap-4 text-sm">
-            <a href="#" className="hover:text-primary text-slate-700">
-              Scouts
-            </a>
-            <a href="#" className="hover:text-primary text-slate-700">
-              Recruteurs
-            </a>
-            <a href="#" className="hover:text-primary text-slate-700">
-              Agents
-            </a>
+            {session && (
+              <a
+                href="/reports/new"
+                className="hover:text-primary text-slate-700"
+              >
+                Nouveau rapport
+              </a>
+            )}
             {session ? (
               <>
                 <a href="/profile" className="hover:text-primary text-slate-700">

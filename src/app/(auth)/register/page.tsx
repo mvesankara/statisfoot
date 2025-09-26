@@ -5,6 +5,13 @@ import { register, type State } from "@/app/register/actions";
 import { PasswordInput } from "@/components/PasswordInput";
 import { signIn } from "next-auth/react";
 
+/**
+ * @page RegisterPage
+ * @description Page d'inscription pour les nouveaux utilisateurs.
+ * Affiche un formulaire complet pour créer un compte avec email/mot de passe,
+ * ou une option pour s'inscrire via Google.
+ * @returns {JSX.Element} Le composant de la page d'inscription.
+ */
 export default function RegisterPage() {
   const [error, formAction, isPending] = useActionState<State, FormData>(register, null);
 

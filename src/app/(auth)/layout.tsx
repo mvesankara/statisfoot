@@ -2,6 +2,14 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 
+/**
+ * @component AuthLayout
+ * @description Layout pour les pages d'authentification (connexion, inscription, etc.).
+ * Il centre le contenu et affiche le logo de l'application.
+ * @param {object} props - Les props du composant.
+ * @param {React.ReactNode} props.children - Le contenu de la page d'authentification (par exemple, le formulaire).
+ * @returns {JSX.Element} Le layout pour les pages d'authentification.
+ */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-ink via-brand-ink to-brand-navy text-slate-100 flex items-center justify-center p-6">

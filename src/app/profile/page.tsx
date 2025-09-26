@@ -1,10 +1,22 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 
+/**
+ * @page ProfilePage
+ * @description Page de profil de l'utilisateur.
+ * Affiche les informations de l'utilisateur connecté (nom, email, rôle).
+ * Redirige vers la page de connexion si l'utilisateur n'est pas authentifié.
+ * @returns {Promise<JSX.Element>} Le composant de la page de profil.
+ */
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+  const session = (await auth()) as {
+    user?: {
+      name?: string;
+      email?: string;
+      role?: string;
+    };
+  } | null;
 
   if (!session) {
     redirect("/login");

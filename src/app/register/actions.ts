@@ -12,7 +12,17 @@
  export type State = string | null;
  const ALLOWED_ROLES = new Set<Role>(["SCOUT", "RECRUITER", "AGENT"] as Role[]);
  
- export async function register(prev: State, formData: FormData): Promise<State> {
+ /**
+ * @async
+ * @function register
+ * @description Server Action pour gérer l'inscription d'un nouvel utilisateur.
+ * Valide les données du formulaire, crée l'utilisateur en base de données,
+ * et envoie un e-mail de vérification.
+ * @param {State} prev - L'état précédent (utilisé pour afficher les erreurs).
+ * @param {FormData} formData - Les données du formulaire d'inscription.
+ * @returns {Promise<State>} Un message d'erreur en cas d'échec, ou redirige en cas de succès.
+ */
+export async function register(prev: State, formData: FormData): Promise<State> {
    const firstName = String(formData.get("firstName") ?? "").trim();
    const lastName = String(formData.get("lastName") ?? "").trim();
    const country   = String(formData.get("country") ?? "").trim();
