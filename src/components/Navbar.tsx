@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 
 /**
@@ -54,18 +55,18 @@ export function Navbar() {
         {/* Navigation desktop */}
         <nav className="hidden md:flex items-center gap-6 text-sm">
           {session && (
-            <a
+            <Link
               href="/reports/new"
               className="hover:text-primary text-slate-600"
             >
               Nouveau rapport
-            </a>
+            </Link>
           )}
           {session ? (
             <>
-              <a href="/profile" className="hover:text-primary text-slate-600">
+              <Link href="/profile" className="hover:text-primary text-slate-600">
                 Mon profil
-              </a>
+              </Link>
               <button
                 onClick={() => signOut()}
                 className="inline-flex items-center rounded-full bg-accent text-primary font-semibold px-4 py-2"
@@ -74,12 +75,12 @@ export function Navbar() {
               </button>
             </>
           ) : (
-            <a
+            <Link
               href="/login"
               className="inline-flex items-center rounded-full bg-accent text-primary font-semibold px-4 py-2"
             >
               Connexion
-            </a>
+            </Link>
           )}
         </nav>
       </div>
@@ -89,18 +90,18 @@ export function Navbar() {
         <div className="md:hidden border-t border-slate-200 bg-white">
           <nav className="px-4 py-4 flex flex-col gap-4 text-sm">
             {session && (
-              <a
+              <Link
                 href="/reports/new"
                 className="hover:text-primary text-slate-700"
               >
                 Nouveau rapport
-              </a>
+              </Link>
             )}
             {session ? (
               <>
-                <a href="/profile" className="hover:text-primary text-slate-700">
+                <Link href="/profile" className="hover:text-primary text-slate-700">
                   Mon profil
-                </a>
+                </Link>
                 <button
                   onClick={() => signOut()}
                   className="inline-flex justify-center items-center rounded-full bg-accent text-primary font-semibold px-4 py-2"
@@ -109,12 +110,12 @@ export function Navbar() {
                 </button>
               </>
             ) : (
-              <a
+              <Link
                 href="/login"
                 className="inline-flex justify-center items-center rounded-full bg-accent text-primary font-semibold px-4 py-2"
               >
                 Connexion
-              </a>
+              </Link>
             )}
           </nav>
         </div>
