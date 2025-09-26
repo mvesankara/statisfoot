@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { QuickActions } from "@/components/dashboard/QuickActions";
@@ -65,7 +64,7 @@ function RecruiterAgentDashboard() {
  * @returns {Promise<JSX.Element>} Le composant de la page du tableau de bord.
  */
 export default async function DashboardPage() {
-  const session = await getServerSession(auth);
+  const session = await auth();
 
   if (!session) {
     redirect("/login");

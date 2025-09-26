@@ -1,5 +1,4 @@
 import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
 import { auth } from "@/lib/auth";
 
 /**
@@ -8,7 +7,7 @@ import { auth } from "@/lib/auth";
  * The old role-based redirect logic is now obsolete with the new unified dashboard.
  */
 export default async function AppGate() {
-  const session = await getServerSession(auth);
+  const session = await auth();
 
   if (!session) {
     // Should be caught by middleware, but as a fallback.
