@@ -1,4 +1,4 @@
-import NextAuth, { type DefaultSession } from "next-auth";
+import NextAuth, { getServerSession, type DefaultSession, type NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
@@ -32,11 +32,10 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
-  // IMPORTANT: NextAuth.js v5 (auth.js) requires the secret to be provided via the AUTH_SECRET environment variable.
-  // The old NEXTAUTH_SECRET variable (used in v4) will not work.
-  secret: process.env.AUTH_SECRET,
+  // Provide a secret via AUTH_SECRET (or NEXTAUTH_SECRET for backwards compatibility).
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   pages: { signIn: "/login" },
   providers: [
     Google({
@@ -73,22 +72,53 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.userId = (user as any).id;
-        token.role = (user as any).role;
-        token.firstname = (user as any).firstname ?? null;
-        token.lastname = (user as any).lastname ?? null;
-        token.emailVerified = (user as any).emailVerified ?? null;
+        const {
+          id,
+          role,
+          firstname,
+          lastname,
+          emailVerified,
+        } = user as {
+          id?: string;
+          role?: string;
+          firstname?: string | null;
+          lastname?: string | null;
+          emailVerified?: Date | null;
+        };
+
+        token.userId = id;
+        token.role = role;
+        token.firstname = firstname ?? null;
+        token.lastname = lastname ?? null;
+        token.emailVerified = emailVerified ?? null;
       }
       return token;
     },
     async session({ session, token }) {
-      session.user ??= {} as any;
-      (session.user as any).id = token.userId ?? "";
-      (session.user as any).role = token.role ?? undefined;
-      (session.user as any).firstname = token.firstname ?? null;
-      (session.user as any).lastname = token.lastname ?? null;
-      (session.user as any).emailVerified = token.emailVerified ?? null;
+      if (!session.user) {
+        session.user = {
+          id: token.userId ?? "",
+          role: token.role ?? undefined,
+          firstname: token.firstname ?? null,
+          lastname: token.lastname ?? null,
+          emailVerified: token.emailVerified ?? null,
+        } as NonNullable<typeof session.user>;
+      } else {
+        session.user.id = token.userId ?? "";
+        session.user.role = token.role ?? undefined;
+        session.user.firstname = token.firstname ?? null;
+        session.user.lastname = token.lastname ?? null;
+        session.user.emailVerified = token.emailVerified ?? null;
+      }
       return session;
     },
   },
-});
+};
+
+const authHandler = NextAuth(authOptions);
+
+export const handlers = { GET: authHandler, POST: authHandler };
+
+export async function auth() {
+  return getServerSession(authOptions);
+}
