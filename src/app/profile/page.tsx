@@ -1,4 +1,3 @@
-import { getServerSession } from "next-auth";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
@@ -11,7 +10,7 @@ import { Navbar } from "@/components/Navbar";
  * @returns {Promise<JSX.Element>} Le composant de la page de profil.
  */
 export default async function ProfilePage() {
-  const session = await getServerSession(auth) as {
+  const session = (await auth()) as {
     user?: {
       name?: string;
       email?: string;
