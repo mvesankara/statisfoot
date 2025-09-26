@@ -1,14 +1,53 @@
+"use client";
+
+import { signOut, useSession } from "next-auth/react";
+
+const ROLE_LABELS = {
+  ADMIN: "Administrateur",
+  SCOUT: "Scout",
+  RECRUITER: "Recruteur",
+  AGENT: "Agent",
+} as const;
+
 /**
  * @component Header
- * @description Affiche l'en-tête principal de l'application, qui contient une barre de recherche,
- * une icône de notification et l'avatar de l'utilisateur.
+ * @description Affiche l'en-tête principal de l'application. Inclut la barre de recherche,
+ * l'icône de notification, les informations de l'utilisateur connecté et un bouton de déconnexion.
  * @returns {JSX.Element} Le composant de l'en-tête.
  */
 export function Header() {
+  const { data: session } = useSession();
+
+  const fallbackNameParts = session?.user?.name?.split(" ") ?? [];
+  const fallbackFirstname = fallbackNameParts[0] ?? null;
+  const fallbackLastname =
+    fallbackNameParts.length > 1 ? fallbackNameParts.slice(1).join(" ") : null;
+
+  const firstname = session?.user?.firstname ?? fallbackFirstname;
+  const lastname = session?.user?.lastname ?? fallbackLastname;
+
+  const displayName = [firstname, lastname]
+    .filter((value): value is string => Boolean(value && value.trim().length > 0))
+    .join(" ")
+    .trim() || session?.user?.name;
+
+  const role = session?.user?.role;
+  const roleLabel = role
+    ? ROLE_LABELS[role as keyof typeof ROLE_LABELS] ?? role
+    : undefined;
+
+  const initials = (displayName ?? "Utilisateur")
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   return (
     <header className="h-16 bg-dark-start/30 backdrop-blur-sm border-b border-white/10 flex items-center px-6">
       <div className="flex-1">
-        {/* Search bar placeholder */}
+        {/* Barre de recherche */}
         <div className="relative">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -29,9 +68,21 @@ export function Header() {
           />
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        {/* Notification bell placeholder */}
-        <button className="p-2 rounded-full text-slate-400 hover:bg-accent/10 hover:text-white">
+      <div className="flex items-center gap-4 text-white">
+        {displayName && (
+          <div className="hidden sm:flex flex-col items-end leading-tight">
+            <span className="text-sm font-semibold">{displayName}</span>
+            {roleLabel && (
+              <span className="text-xs text-slate-400 uppercase tracking-wide">{roleLabel}</span>
+            )}
+          </div>
+        )}
+        {/* Notification */}
+        <button
+          type="button"
+          className="p-2 rounded-full text-slate-400 hover:bg-accent/10 hover:text-white transition"
+          aria-label="Notifications"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
@@ -47,11 +98,57 @@ export function Header() {
             />
           </svg>
         </button>
-        {/* Avatar placeholder */}
-        <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-dark-start font-bold">
-          U
+        {/* Bouton déconnexion */}
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="hidden sm:inline-flex items-center gap-2 rounded-full bg-accent text-dark-start font-semibold px-4 py-2 transition hover:bg-accent/90"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-5 w-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+            />
+          </svg>
+          Déconnexion
+        </button>
+        <button
+          type="button"
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className={MOBILE_BUTTON_CLASSES}
+          aria-label="Déconnexion"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-5 w-5"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"
+            />
+          </svg>
+        </button>
+        {/* Avatar */}
+        <div className="w-9 h-9 rounded-full bg-accent flex items-center justify-center text-dark-start font-bold uppercase">
+          {initials || "U"}
         </div>
       </div>
     </header>
   );
 }
+
+const MOBILE_BUTTON_CLASSES =
+  "sm:hidden inline-flex items-center justify-center rounded-full bg-accent text-dark-start font-semibold p-2 transition hover:bg-accent/90";
