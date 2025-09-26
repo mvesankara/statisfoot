@@ -1,9 +1,21 @@
 import Link from "next/link";
 
 const actions = [
-  { label: "Nouveau rapport", href: "/reports/new" },
-  { label: "Répondre à une demande", href: "#" },
-  { label: "Importer une vidéo", href: "#" },
+  {
+    label: "Nouveau rapport",
+    description: "Consigner une nouvelle observation terrain",
+    href: "/reports/new",
+  },
+  {
+    label: "Joueurs",
+    description: "Explorer la base de joueurs existants",
+    href: "/players",
+  },
+  {
+    label: "Rapports",
+    description: "Revoir l'ensemble de vos rapports sauvegardés",
+    href: "/reports",
+  },
 ];
 
 /**
@@ -20,9 +32,10 @@ export function QuickActions() {
           <Link
             key={action.label}
             href={action.href}
-            className="w-full text-center px-4 py-2 bg-accent text-dark-start font-semibold rounded-lg hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-dark-end focus:ring-accent"
+            className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 text-left transition hover:border-accent/50 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-end"
           >
-            {action.label}
+            <span className="block text-sm font-semibold text-white">{action.label}</span>
+            <span className="mt-1 block text-xs text-slate-400">{action.description}</span>
           </Link>
         ))}
       </div>

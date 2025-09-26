@@ -4,13 +4,9 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 const navItems = [
-  "Tableau de bord",
-  "Joueurs",
-  "Rapports",
-  "Demandes",
-  "Favoris",
-  "Facturation",
-  "Paramètres",
+  { label: "Tableau de bord", href: "/dashboard" },
+  { label: "Joueurs", href: "/players" },
+  { label: "Rapports", href: "/reports" },
 ];
 
 /**
@@ -21,6 +17,13 @@ const navItems = [
  */
 export function Sidebar() {
   const { data: session } = useSession();
+  const fullName = session?.user
+    ? ([session.user.firstname, session.user.lastname].filter(Boolean).join(" ") ||
+        session.user.name ||
+        session.user.email ||
+        "Mon compte")
+    : "";
+  const initials = fullName ? fullName.charAt(0).toUpperCase() : "U";
 
   return (
     <aside className="w-[280px] bg-dark-start/50 p-6 flex flex-col">
@@ -37,11 +40,11 @@ export function Sidebar() {
       <nav className="flex flex-col gap-2">
         {navItems.map((item) => (
           <Link
-            key={item}
-            href="#"
-            className="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-accent/10 hover:text-white"
+            key={item.href}
+            href={item.href}
+            className="px-3 py-2 rounded-md text-sm font-medium text-slate-300 transition hover:bg-accent/10 hover:text-white"
           >
-            {item}
+            {item.label}
           </Link>
         ))}
       </nav>
@@ -49,11 +52,11 @@ export function Sidebar() {
         {session && (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center text-dark-start font-bold">
-              {session.user.name?.charAt(0).toUpperCase()}
+              {initials}
             </div>
             <div>
-              <p className="font-semibold text-white">{session.user.name}</p>
-              <p className="text-xs text-slate-400">{session.user.role}</p>
+              <p className="font-semibold text-white">{fullName}</p>
+              <p className="text-xs uppercase text-slate-400">{session.user.role}</p>
             </div>
           </div>
         )}

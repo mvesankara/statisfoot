@@ -1,59 +1,32 @@
-"use client";
-import { useState } from "react";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { NewReportForm } from "@/components/reports/NewReportForm";
 
 /**
  * @page NewReportPage
- * @description Page pour la création d'un nouveau rapport.
- * Contient un formulaire pour saisir l'ID du joueur, l'ID de l'auteur et le contenu du rapport.
- * @returns {JSX.Element} Le composant de la page de création de rapport.
+ * @description Page serveur permettant de préparer le formulaire de création de rapport.
  */
-export default function NewReportPage() {
-  const [playerId, setPlayerId] = useState("");
-  const [authorId, setAuthorId] = useState("");
-  const [content, setContent] = useState("");
+export default async function NewReportPage() {
+  const session = await auth();
 
-  /**
-   * @async
-   * @function handleSubmit
-   * @description Gère la soumission du formulaire de création de rapport.
-   * Envoie les données à l'API pour créer le rapport.
-   * @param {React.FormEvent} e - L'événement de soumission du formulaire.
-   */
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    await fetch("/api/reports", {
-       method: "POST",
-       headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({ playerId, authorId, content }),
-     });
-     setPlayerId("");
-     setAuthorId("");
-     setContent("");
-   }
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
 
-   return (
-     < form onSubmit={handleSubmit} className="p-8 space-y-4 max-w-lg mx-auto">
-       <input
-         className="border p-2 w-full"
-         placeholder="Player ID"
-         value={playerId}
-         onChange={(e) => setPlayerId(e.target.value)}
-       />
-       <input
-         className="border p-2 w-full"
-         placeholder="Author ID"
-         value={authorId}
-         onChange={(e) => setAuthorId(e.target.value)}
-       />
-       <textarea
-         className="border p-2 w-full"
-         placeholder="Report content"
-         value={content}
-         onChange={(e) => setContent(e.target.value)}
-       />
-       <button type="submit" className="bg-primary text-white px-4 py-2 rounded">
-         Save report
-       </button>
-     </form>
-   );
- }
+  const players = await prisma.player.findMany({
+    orderBy: { name: "asc" },
+    select: { id: true, name: true, position: true },
+  });
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm text-slate-400">Renseignez un nouveau rapport de scouting.</p>
+        <h1 className="text-3xl font-bold text-white">Nouveau rapport</h1>
+      </div>
+      <NewReportForm players={players} />
+    </div>
+  );
+}
+
