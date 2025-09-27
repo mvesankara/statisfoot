@@ -79,11 +79,11 @@ const options = {
  */
 export function KpiCharts() {
   return (
-    <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6 h-full">
-      <h3 className="text-white font-semibold mb-4">Mes KPIs</h3>
-      <div className="h-56">
+    <section className="relative isolate rounded-2xl bg-slate-900/50 p-6 shadow-md ring-1 ring-white/10">
+      <h3 className="mb-4 text-white font-semibold">Mes KPIs</h3>
+      <div className="h-56 [&>canvas]:h-full [&>canvas]:w-full">
         <Bar data={data} options={options} />
       </div>
-    </div>
+    </section>
   );
 }

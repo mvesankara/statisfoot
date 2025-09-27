@@ -61,12 +61,12 @@ interface MyReportsProps {
  */
 export function MyReports({ reports }: MyReportsProps) {
   return (
-    <div className="rounded-2xl bg-slate-900/50 p-6 shadow-md ring-1 ring-white/10">
+    <section className="relative isolate rounded-2xl bg-slate-900/50 p-6 shadow-md ring-1 ring-white/10">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-white font-semibold">Mes rapports récents</h3>
         <Link
           href="/reports"
-          className="text-xs font-medium text-accent hover:text-accent/80"
+          className="text-xs font-medium text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-dark-end"
         >
           Voir tous les rapports
         </Link>
@@ -142,7 +142,7 @@ export function MyReports({ reports }: MyReportsProps) {
                   <td className="px-6 py-4 text-right text-sm">
                     <Link
                       href={`/reports/${report.id}`}
-                      className="font-medium text-accent hover:text-accent/80"
+                      className="font-medium text-accent transition hover:text-accent/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-dark-end"
                     >
                       Consulter
                     </Link>
@@ -153,6 +153,6 @@ export function MyReports({ reports }: MyReportsProps) {
           </table>
         )}
       </div>
-    </div>
+    </section>
   );
 }

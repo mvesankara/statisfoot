@@ -25,20 +25,20 @@ const actions = [
  */
 export function QuickActions() {
   return (
-    <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6">
-      <h3 className="text-white font-semibold mb-4">Actions rapides</h3>
+    <section className="relative isolate rounded-2xl bg-slate-900/50 p-6 shadow-md ring-1 ring-white/10">
+      <h3 className="mb-4 text-white font-semibold">Actions rapides</h3>
       <div className="flex flex-col gap-3">
         {actions.map((action) => (
           <Link
             key={action.label}
             href={action.href}
-            className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 text-left transition hover:border-accent/50 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-dark-end"
+            className="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 text-left transition hover:border-accent/50 hover:bg-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-dark-end"
           >
             <span className="block text-sm font-semibold text-white">{action.label}</span>
             <span className="mt-1 block text-xs text-slate-400">{action.description}</span>
           </Link>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

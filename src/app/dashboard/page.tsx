@@ -70,34 +70,34 @@ function DashboardHero({
 
 function ScoutDashboard({ reports }: { reports: DashboardReport[] }) {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-12 xl:col-span-8 space-y-6">
+    <section className="flex flex-col gap-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-6">
           <KpiCharts />
           <MyReports reports={reports} />
         </div>
-        <div className="col-span-12 xl:col-span-4 space-y-6">
+        <aside className="flex flex-col gap-6">
           <QuickActions />
           <QuickFavorites />
-        </div>
+        </aside>
       </div>
       <ReportRequests />
-    </div>
+    </section>
   );
 }
 
 function CollaborativeDashboard({ reports }: { reports: DashboardReport[] }) {
   return (
-    <div className="grid grid-cols-12 gap-6">
-      <div className="col-span-12 xl:col-span-8 space-y-6">
+    <section className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="flex flex-col gap-6">
         <PlayerFilters />
         <MyReports reports={reports} />
       </div>
-      <div className="col-span-12 xl:col-span-4 space-y-6">
+      <aside className="flex flex-col gap-6">
         <QuickActions />
         <QuickFavorites />
-      </div>
-    </div>
+      </aside>
+    </section>
   );
 }
 
@@ -157,7 +157,7 @@ export default async function DashboardPage() {
     );
 
   return (
-    <div className="space-y-8">
+    <>
       <DashboardHero
         name={displayName}
         roleLabel={roleLabels[role]}
@@ -169,6 +169,6 @@ export default async function DashboardPage() {
           Des widgets spécifiques à l’administration seront prochainement disponibles.
         </div>
       )}
-    </div>
+    </>
   );
 }
