@@ -12,25 +12,34 @@ const favoritePlayers = [
  */
 export function QuickFavorites() {
   return (
-    <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6 h-full">
-      <h3 className="text-white font-semibold mb-4">Favoris rapides</h3>
+    <section className="relative isolate rounded-2xl bg-slate-900/50 p-6 shadow-md ring-1 ring-white/10">
+      <h3 className="mb-4 text-white font-semibold">Favoris rapides</h3>
       <div className="flex flex-col gap-4">
         {favoritePlayers.map((player) => (
-          <div key={player.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-slate-800/60">
-            <div className="w-12 h-12 rounded-full bg-slate-700 flex-shrink-0">
-              {/* <img src={player.avatar} alt={player.name} className="w-full h-full rounded-full object-cover" /> */}
+          <div
+            key={player.id}
+            className="flex items-center gap-4 rounded-lg p-2 transition hover:bg-slate-800/60"
+          >
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-slate-700 text-sm font-semibold text-white">
+              {player.name
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)}
             </div>
-            <div className="flex-grow">
+            <div className="flex flex-1 flex-col">
               <p className="font-semibold text-white">{player.name}</p>
-              <p className="text-sm text-slate-400">{player.position} - {player.age} ans</p>
+              <p className="text-sm text-slate-400">
+                {player.position} · {player.age} ans
+              </p>
             </div>
-            <div className="text-right flex-shrink-0">
-               <p className="text-xs text-slate-500">Dernier rapport</p>
-               <p className="text-sm font-medium text-slate-300">{player.lastReport}</p>
+            <div className="flex flex-col items-end text-right text-xs text-slate-400">
+              <span className="uppercase tracking-wide">Dernier rapport</span>
+              <span className="text-sm font-medium text-slate-200">{player.lastReport}</span>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
