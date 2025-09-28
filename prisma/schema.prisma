@@ -38,6 +38,12 @@ model Player {
 model Report {
   id        String   @id @default(cuid())
   content   String
+  title     String
+  rating    Int?
+  strengths String?
+  weaknesses String?
+  recommendation String?
+  matchDate DateTime?
   playerId  String
   authorId  String
   status    String   @default("draft")
