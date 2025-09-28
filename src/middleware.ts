@@ -9,14 +9,20 @@ import { hasPermission, PERMISSIONS } from "@/lib/rbac";
 import type { Role } from "@prisma/client";
 
 /**
- * @const {Record<string, keyof typeof PERMISSIONS>} ROUTE_PERMISSIONS
- * @description Mappe les préfixes de route aux permissions requises pour y accéder.
+ * @const {RoutePermission[]} ROUTE_PERMISSIONS
+ * @description Liste ordonnée des préfixes de route et des permissions requises pour y accéder.
  */
-const ROUTE_PERMISSIONS: Record<string, keyof typeof PERMISSIONS> = {
-  "/admin": PERMISSIONS["admin:access"],
-  "/players": PERMISSIONS["players:read"],
-  "/reports": PERMISSIONS["reports:read"],
+type RoutePermission = {
+  prefix: string;
+  permission: keyof typeof PERMISSIONS;
 };
+
+const ROUTE_PERMISSIONS: RoutePermission[] = [
+  { prefix: "/admin", permission: PERMISSIONS["admin:access"] },
+  { prefix: "/players", permission: PERMISSIONS["players:read"] },
+  { prefix: "/reports/new", permission: PERMISSIONS["reports:create"] },
+  { prefix: "/reports", permission: PERMISSIONS["reports:read"] },
+];
 
 export default withAuth({
   callbacks: {
@@ -26,8 +32,12 @@ export default withAuth({
       const path = req.nextUrl.pathname;
       const role = token.role as Role;
 
-      for (const [route, permission] of Object.entries(ROUTE_PERMISSIONS)) {
-        if (path.startsWith(route)) {
+      const orderedRoutePermissions = [...ROUTE_PERMISSIONS].sort(
+        (a, b) => b.prefix.length - a.prefix.length,
+      );
+
+      for (const { prefix, permission } of orderedRoutePermissions) {
+        if (path.startsWith(prefix)) {
           return hasPermission(role, permission);
         }
       }
