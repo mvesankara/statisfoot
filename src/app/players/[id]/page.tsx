@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import RadarChart from "@/components/RadarChart";
 import KpiCard from "@/components/KpiCard";
 
@@ -76,9 +77,15 @@ export default async function PlayerProfile({ params }: { params: { id: string }
             {player.age} ans · {player.foot} · {player.height} cm · {player.position}
           </p>
           <p className="text-xs">ID Statisfoot : {player.id}</p>
-          <div className="mt-3 space-x-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             <button className="btn-secondary">Ajouter à la short‑list</button>
             <button className="btn-primary">Demander contrat</button>
+            <Link
+              href={`/reports/new?playerId=${player.id}`}
+              className="btn-primary"
+            >
+              Remplir un rapport
+            </Link>
           </div>
         </div>
       </header>
