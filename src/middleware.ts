@@ -5,10 +5,16 @@
  * pour accéder à une route spécifique en se basant sur son rôle (RBAC).
  */
 import { withAuth } from "next-auth/middleware";
-import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS } from "./lib/rbac";
 import type { Role } from "@prisma/client";
 
+type RouteRule = {
+  matcher: (path: string) => boolean;
+  permission: keyof typeof PERMISSIONS;
+};
+
 /**
+
  * @const {RoutePermission[]} ROUTE_PERMISSIONS
  * @description Liste ordonnée des préfixes de route et des permissions requises pour y accéder.
  */
@@ -16,6 +22,48 @@ type RoutePermission = {
   prefix: string;
   permission: keyof typeof PERMISSIONS;
 };
+
+ * @const ROUTE_RULES
+ * @description Tableau de règles précises reliant un matcher de chemin à la permission requise.
+ */
+
+export const ROUTE_RULES: RouteRule[] = [
+  {
+    matcher: (path) => path.startsWith("/admin"),
+    permission: PERMISSIONS["admin:access"],
+  },
+  {
+    matcher: (path) => path.startsWith("/players"),
+    permission: PERMISSIONS["players:read"],
+  },
+  {
+    matcher: (path) => path === "/reports/new" || path.startsWith("/reports/new/"),
+    permission: PERMISSIONS["reports:create"],
+  },
+  {
+    matcher: (path) => path.startsWith("/reports"),
+    permission: PERMISSIONS["reports:read"],
+  },
+];
+
+export function resolveRequiredPermission(path: string) {
+  for (const rule of ROUTE_RULES) {
+    if (rule.matcher(path)) {
+      return rule.permission;
+    }
+  }
+
+  return null;
+}
+
+export function isAuthorized(role: Role, path: string) {
+  const permission = resolveRequiredPermission(path);
+  if (!permission) {
+    return true;
+  }
+
+  return hasPermission(role, permission);
+}
 
 const ROUTE_PERMISSIONS: RoutePermission[] = [
   { prefix: "/admin", permission: PERMISSIONS["admin:access"] },
@@ -32,6 +80,7 @@ export default withAuth({
       const path = req.nextUrl.pathname;
       const role = token.role as Role;
 
+
       const orderedRoutePermissions = [...ROUTE_PERMISSIONS].sort(
         (a, b) => b.prefix.length - a.prefix.length,
       );
@@ -43,6 +92,9 @@ export default withAuth({
       }
 
       return true; // Pour les routes non mappées comme /profile
+
+      return isAuthorized(role, path); // Pour les routes non mappées comme /profile
+
     },
   },
 });
