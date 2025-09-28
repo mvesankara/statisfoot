@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "react-hook-form": ["./src/lib/react-hook-form"],
+      "@hookform/resolvers/zod": ["./src/lib/hookform-zod-resolver"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
