@@ -8,6 +8,7 @@
       "start": "next start",
       "lint": "eslint",
       "test": "tsc --project tsconfig.test.json && node dist-test/tests/reports-new.test.js"
+      "test": "tsc --project tsconfig.test.json && node --test dist/tests/middleware.spec.js"
    },
    "dependencies": {
       "@prisma/client": "^6.16.2",

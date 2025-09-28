@@ -15,4 +15,20 @@
     "src/app/reports/new/form-utils.ts",
     "tests/reports-new.test.ts"
   ]
+    "noEmit": false,
+    "emitDeclarationOnly": false,
+    "outDir": "./dist",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2019",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "allowJs": false
+  },
+  "include": [
+    "tests/**/*.ts",
+    "src/middleware.ts",
+    "src/lib/rbac.ts"
+  ],
+  "exclude": ["node_modules"]
 }
