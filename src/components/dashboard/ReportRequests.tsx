@@ -26,23 +26,27 @@ const columns = [
  */
 export function ReportRequests() {
   return (
-    <div className="bg-slate-900/50 rounded-2xl ring-1 ring-white/10 shadow-md p-6">
-      <h3 className="text-white font-semibold mb-4">Demandes de rapports personnels</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section className="relative isolate rounded-2xl bg-slate-900/50 p-6 shadow-md ring-1 ring-white/10">
+      <h3 className="mb-4 text-white font-semibold">Demandes de rapports personnels</h3>
+      <div className="grid gap-6 md:grid-cols-3">
         {columns.map((column) => (
-          <div key={column.id} className="bg-slate-800/50 rounded-lg p-4">
-            <h4 className="font-semibold text-accent mb-4 text-sm uppercase tracking-wider">{column.title}</h4>
-            <div className="flex flex-col gap-4">
-              {column.requests.map((request) => (
-                <div key={request.id} className="bg-slate-900 rounded-md p-3 ring-1 ring-slate-700">
-                  <p className="font-semibold text-white">{request.player}</p>
-                  <p className="text-xs text-slate-400 mt-1">Date limite : {request.deadline}</p>
-                </div>
-              ))}
-            </div>
+          <div key={column.id} className="flex flex-col gap-4 rounded-lg bg-slate-800/50 p-4">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-accent">{column.title}</h4>
+            {column.requests.map((request) => (
+              <div
+                key={request.id}
+                className="rounded-md bg-slate-900 p-3 ring-1 ring-slate-700"
+              >
+                <p className="font-semibold text-white">{request.player}</p>
+                <p className="mt-1 text-xs text-slate-400">Date limite : {request.deadline}</p>
+              </div>
+            ))}
+            {column.requests.length === 0 && (
+              <p className="text-xs text-slate-400">Aucune demande dans cette colonne.</p>
+            )}
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
