@@ -1,4 +1,3 @@
-import assert from "node:assert/strict";
 import {
   REPORT_CRITERIA,
   buildEmptyNotes,
@@ -7,13 +6,9 @@ import {
   submitReport,
   type ReportFormValues,
 } from "../src/app/reports/new/form-utils.js";
+import { assert, runTests, type TestCase } from "./test-helpers.js";
 
 type AttachmentMock = { name: string; size: number; type: string };
-
-type TestCase = {
-  name: string;
-  run: () => void | Promise<void>;
-};
 
 function createValidValues(): ReportFormValues {
   const notes = buildEmptyNotes();
@@ -109,20 +104,4 @@ const tests: TestCase[] = [
   },
 ];
 
-(async () => {
-  let passed = 0;
-  for (const test of tests) {
-    try {
-      await test.run();
-      passed += 1;
-      console.log(`✔ ${test.name}`);
-    } catch (error) {
-      console.error(`✖ ${test.name}`);
-      console.error(error);
-      process.exitCode = 1;
-    }
-  }
-  if (passed === tests.length) {
-    console.log(`\n${passed} tests réussis`);
-  }
-})();
+void runTests(tests);

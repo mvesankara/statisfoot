@@ -2,33 +2,23 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "dist-test",
-    "module": "ES2020",
-    "target": "ES2020",
+    "module": "CommonJS",
+    "target": "ES2019",
     "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "allowJs": false,
     "noEmit": false,
     "declaration": false,
-    "emitDeclarationOnly": false,
-    "isolatedModules": false
+    "emitDeclarationOnly": false
   },
   "include": [
     "src/lib/zod.ts",
     "src/app/reports/new/form-utils.ts",
-    "tests/reports-new.test.ts"
-  ]
-    "noEmit": false,
-    "emitDeclarationOnly": false,
-    "outDir": "./dist",
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "target": "ES2019",
-    "resolveJsonModule": true,
-    "isolatedModules": false,
-    "allowJs": false
-  },
-  "include": [
     "tests/**/*.ts",
     "src/middleware.ts",
-    "src/lib/rbac.ts"
+    "src/lib/rbac.ts",
+    "types/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }
