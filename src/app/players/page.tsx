@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Role } from "@prisma/client";
+
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasPermission, PERMISSIONS } from "@/lib/rbac";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
@@ -19,6 +22,11 @@ export default async function PlayersPage() {
     redirect("/login");
   }
 
+  const role = session.user.role as Role | undefined;
+  const canCreatePlayer = role
+    ? hasPermission(role, PERMISSIONS["players:create"])
+    : false;
+
   const players = await prisma.player.findMany({
     orderBy: { createdAt: "desc" },
     include: {
@@ -28,14 +36,25 @@ export default async function PlayersPage() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-slate-400">Base joueurs Statisfoot</p>
           <h1 className="text-3xl font-bold text-white">Joueurs</h1>
         </div>
-        <p className="text-sm text-slate-400">
-          {players.length} joueur{players.length > 1 ? "s" : ""} suivi{players.length > 1 ? "s" : ""}.
-        </p>
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+          <p className="text-sm text-slate-400">
+            {players.length} joueur{players.length > 1 ? "s" : ""} suivi
+            {players.length > 1 ? "s" : ""}.
+          </p>
+          {canCreatePlayer && (
+            <Link
+              href="/players/new"
+              className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-semibold text-dark-start transition hover:bg-accent/90"
+            >
+              Ajouter un joueur
+            </Link>
+          )}
+        </div>
       </header>
 
       <div className="overflow-x-auto rounded-2xl bg-slate-900/50 ring-1 ring-white/10">
@@ -71,7 +90,9 @@ export default async function PlayersPage() {
                   </Link>
                   <span className="block text-xs text-slate-400">ID {player.id}</span>
                 </th>
-                <td className="px-6 py-4 capitalize">{player.position.toLowerCase()}</td>
+                <td className="px-6 py-4 capitalize">
+                  {player.position.toLowerCase()}
+                </td>
                 <td className="px-6 py-4 text-sm">{player._count.reports}</td>
                 <td className="px-6 py-4 text-sm">
                   {dateFormatter.format(player.createdAt)}
@@ -80,8 +101,16 @@ export default async function PlayersPage() {
             ))}
             {players.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-10 text-center text-sm text-slate-400">
+                <td
+                  colSpan={4}
+                  className="px-6 py-10 text-center text-sm text-slate-400"
+                >
                   Aucun joueur enregistré pour le moment.
+                  {canCreatePlayer && (
+                    <span className="mt-2 block text-accent">
+                      Ajoutez votre premier joueur pour commencer le suivi.
+                    </span>
+                  )}
                 </td>
               </tr>
             )}
@@ -91,4 +120,3 @@ export default async function PlayersPage() {
     </div>
   );
 }
-

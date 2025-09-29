@@ -31,6 +31,27 @@ const tests: TestCase[] = [
       assert.ok(!isAuthorized(scoutRole, "/reports"));
     },
   },
+  {
+    name: "/players/new requires players:create permission",
+    run: () => {
+      const permission = resolveRequiredPermission("/players/new");
+      assert.equal(permission, PERMISSIONS["players:create"]);
+    },
+  },
+  {
+    name: "recruiter can access /players/new",
+    run: () => {
+      const recruiterRole = ROLES.RECRUITER;
+      assert.ok(isAuthorized(recruiterRole, "/players/new"));
+    },
+  },
+  {
+    name: "scout cannot access /players/new",
+    run: () => {
+      const scoutRole = ROLES.SCOUT;
+      assert.ok(!isAuthorized(scoutRole, "/players/new"));
+    },
+  },
 ];
 
 void runTests(tests);

@@ -49,6 +49,10 @@ export const ROUTE_RULES: RouteRule[] = [
     permission: PERMISSIONS["admin:access"],
   },
   {
+    matcher: (path) => path === "/players/new" || path.startsWith("/players/new/"),
+    permission: PERMISSIONS["players:create"],
+  },
+  {
     matcher: (path) => path.startsWith("/players"),
     permission: PERMISSIONS["players:read"],
   },
