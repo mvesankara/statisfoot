@@ -6,7 +6,13 @@ import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, PERMISSIONS, ROLES } from "@/lib/rbac";
-import { z, infer as inferType } from "@/lib/zod";
+import {
+  createPlayerSchema,
+  normalizePlayerInput,
+  type CreatePlayerInput,
+} from "@/lib/players";
+
+import type { CreatePlayerState } from "./state";
 
 const ROLE_VALUES = Object.values(ROLES) as Role[];
 
@@ -17,42 +23,16 @@ function resolveRole(value: string | undefined | null): Role | null {
   return ROLE_VALUES.includes(value as Role) ? (value as Role) : null;
 }
 
-export const createPlayerSchema = z.object({
-  name: z
-    .string()
-    .min(3, "Le nom doit contenir au moins 3 caractères")
-    .max(120, "Le nom est trop long"),
-  position: z
-    .string()
-    .min(2, "Le poste est requis")
-    .max(60, "Le poste est trop long"),
-});
-
-export type CreatePlayerInput = inferType<typeof createPlayerSchema>;
-
-export type CreatePlayerState = {
-  success: boolean;
-  errors: Partial<Record<keyof CreatePlayerInput, string>>;
-  message: string | null;
-};
-
-export const initialCreatePlayerState: CreatePlayerState = {
-  success: false,
-  errors: {},
-  message: null,
-};
-
 export async function persistPlayer(
   input: CreatePlayerInput,
   creatorId: string
 ) {
-  const normalizedName = input.name.replace(/\s+/g, " ").trim();
-  const normalizedPosition = input.position.replace(/\s+/g, " ").trim().toUpperCase();
+  const normalized = normalizePlayerInput(input);
 
   return prisma.player.create({
     data: {
-      name: normalizedName,
-      position: normalizedPosition,
+      name: normalized.name,
+      position: normalized.position.toUpperCase(),
       creatorId,
     },
   });
@@ -89,7 +69,7 @@ export async function createPlayer(
   const parsed = createPlayerSchema.safeParse(candidate);
 
   if (!parsed.success) {
-    const fieldErrors: Partial<Record<keyof CreatePlayerInput, string>> = {};
+    const fieldErrors: CreatePlayerState["errors"] = {};
     for (const issue of parsed.error.issues) {
       const field = issue.path[0];
       if (field === "name" || field === "position") {

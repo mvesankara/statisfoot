@@ -2,11 +2,11 @@
 
 import { useActionState, useEffect, useRef } from "react";
 
+import { createPlayer } from "@/app/players/actions";
 import {
-  createPlayer,
   initialCreatePlayerState,
   type CreatePlayerState,
-} from "@/app/players/actions";
+} from "@/app/players/state";
 
 export function CreatePlayerForm() {
   const formRef = useRef<HTMLFormElement>(null);
