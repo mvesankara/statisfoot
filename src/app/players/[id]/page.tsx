@@ -1,160 +1,223 @@
-import Image from "next/image";
 import Link from "next/link";
-import RadarChart from "@/components/RadarChart";
-import KpiCard from "@/components/KpiCard";
+import { notFound, redirect } from "next/navigation";
+import type { Role } from "@prisma/client";
 
-/**
- * @async
- * @function getPlayer
- * @description Récupère les données d'un joueur par son ID.
- * Actuellement, utilise des données statiques en guise de placeholder.
- * @param {string} id - L'ID du joueur à récupérer.
- * @returns {Promise<object>} Un objet contenant les informations du joueur.
- */
-async function getPlayer(id: string) {
-  // Placeholder data; replace with real fetch to your API
-  return {
-    id,
-    name: "John Doe",
-    age: 20,
-    foot: "Gauche",
-    height: 180,
-    position: "Attaquant",
-    picture: "/favicon_statisfoot.png",
-    radar: {
-      labels: ["Vitesse", "Technique", "Physique", "Vision", "Finition"],
-      values: [80, 75, 70, 85, 90],
-    },
-    kpis: [
-      { label: "Buts", value: 10 },
-      { label: "Passes", value: 7 },
-      { label: "XG", value: 5.3 },
-    ],
-    recentForm: ["Bon match vs. A", "But vs. B", "Blessure légère"],
-    contract: {
-      status: "Actif",
-      endDate: "2026-06-30",
-      salary: "50k€",
-      transferFee: "2M€",
-    },
-    comparison: [
-      { name: "Player A", score: 92 },
-      { name: "Player B", score: 88 },
-    ],
-    reports: [
-      { id: "1", scout: "Scout 1", summary: "Très prometteur" },
-      { id: "2", scout: "Scout 2", summary: "Bonne vision du jeu" },
-    ],
-  };
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+
+const createdAtFormatter = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "long",
+  year: "numeric",
+});
+
+const reportDateFormatter = new Intl.DateTimeFormat("fr-FR", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+
+type DisplayUser = {
+  firstname: string | null;
+  lastname: string | null;
+  name: string | null;
+  email: string | null;
+} | null;
+
+function formatUserName(user: DisplayUser) {
+  if (!user) return "—";
+  const parts = [user.firstname, user.lastname].filter(Boolean);
+  if (parts.length > 0) {
+    return parts.join(" ");
+  }
+  return user.name ?? user.email ?? "—";
 }
 
 /**
  * @page PlayerProfile
- * @description Page de profil d'un joueur.
- * Affiche des informations détaillées sur un joueur, y compris ses statistiques,
- * des graphiques, des rapports et des informations contractuelles.
- * @param {object} props - Les props de la page.
- * @param {object} props.params - Les paramètres de la route dynamique.
- * @param {string} props.params.id - L'ID du joueur.
- * @returns {Promise<JSX.Element>} Le composant de la page de profil du joueur.
+ * @description Page de profil d'un joueur alimentée depuis la base de données.
  */
-export default async function PlayerProfile({ params }: { params: { id: string } }) {
-  const player = await getPlayer(params.id);
+export default async function PlayerProfile({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const role = session.user.role as Role | undefined;
+  const canCreateReport = role
+    ? hasPermission(role, PERMISSIONS["reports:create"])
+    : false;
+
+  const player = await prisma.player.findUnique({
+    where: { id: params.id },
+    include: {
+      creator: {
+        select: {
+          firstname: true,
+          lastname: true,
+          name: true,
+          email: true,
+        },
+      },
+      _count: { select: { reports: true } },
+      reports: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          createdAt: true,
+          author: {
+            select: {
+              firstname: true,
+              lastname: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!player) {
+    notFound();
+  }
+
+  const creatorLabel = formatUserName(player.creator);
 
   return (
-    <div className="bg-white text-gray-800">
-      <header className="bg-primary text-white p-6 flex items-center gap-4">
-        <Image
-          src={player.picture}
-          alt={player.name}
-          width={96}
-          height={96}
-          className="rounded-full object-cover"
-        />
-        <div>
-          <h1 className="text-3xl font-bold">{player.name}</h1>
-          <p className="text-sm">
-            {player.age} ans · {player.foot} · {player.height} cm · {player.position}
+    <div className="space-y-10">
+      <header className="flex flex-col gap-6 rounded-2xl bg-slate-900/50 p-8 ring-1 ring-white/10 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-3">
+          <div className="flex flex-col gap-1 text-sm text-slate-400">
+            <span>Fiche joueur</span>
+            <span>ID Statisfoot : {player.id}</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white">{player.name}</h1>
+          <p className="text-sm text-slate-300">
+            Poste principal : <span className="font-medium text-white">{player.position}</span>
           </p>
-          <p className="text-xs">ID Statisfoot : {player.id}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button className="btn-secondary">Ajouter à la short‑list</button>
-            <button className="btn-primary">Demander contrat</button>
+          <dl className="grid grid-cols-1 gap-4 text-sm text-slate-300 sm:grid-cols-3">
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Ajouté le
+              </dt>
+              <dd className="mt-1 font-medium text-white">
+                {createdAtFormatter.format(player.createdAt)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Créé par
+              </dt>
+              <dd className="mt-1 font-medium text-white">{creatorLabel}</dd>
+            </div>
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-slate-400">
+                Rapports associés
+              </dt>
+              <dd className="mt-1 font-medium text-white">
+                {player._count.reports}
+              </dd>
+            </div>
+          </dl>
+        </div>
+        <div className="flex flex-wrap items-center justify-start gap-3 md:justify-end">
+          <Link
+            href="/players"
+            className="inline-flex items-center justify-center rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-accent/60 hover:text-accent"
+          >
+            Retour à la liste
+          </Link>
+          {canCreateReport && (
             <Link
               href={`/reports/new?playerId=${player.id}`}
-              className="btn-primary"
+              className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-semibold text-dark-start transition hover:bg-accent/90"
             >
-              Remplir un rapport
+              Rédiger un rapport
             </Link>
-          </div>
+          )}
         </div>
       </header>
 
-      <nav className="border-b bg-white">
-        <ul className="flex gap-6 p-4 text-sm font-medium text-gray-600">
-          <li className="text-primary border-b-2 border-primary pb-1">Aperçu</li>
-          <li>Statistiques</li>
-          <li>Rapports scouts</li>
-          <li>Contrat & disponibilité</li>
-          <li>Comparaison</li>
-          <li>Favoris</li>
-        </ul>
-      </nav>
-
-      <div className="p-6 grid gap-6 md:grid-cols-3">
-        <section className="md:col-span-2 space-y-6">
-          <RadarChart data={player.radar} />
-
-          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-            {player.kpis.map((kpi) => (
-              <KpiCard key={kpi.label} label={kpi.label} value={kpi.value} />
-            ))}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-white">Rapports récents</h2>
+          {canCreateReport && (
+            <Link
+              href={`/reports/new?playerId=${player.id}`}
+              className="text-sm font-medium text-accent hover:text-accent/80"
+            >
+              Ajouter un nouveau rapport
+            </Link>
+          )}
+        </div>
+        {player.reports.length > 0 ? (
+          <div className="overflow-x-auto rounded-2xl bg-slate-900/50 ring-1 ring-white/10">
+            <table className="min-w-full text-left text-sm text-slate-300">
+              <thead className="bg-slate-900/30 text-xs uppercase text-slate-400">
+                <tr>
+                  <th scope="col" className="px-6 py-3">
+                    Titre
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Auteur
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Statut
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Créé le
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {player.reports.map((report) => (
+                  <tr
+                    key={report.id}
+                    className="border-b border-slate-800/60 hover:bg-slate-800/40"
+                  >
+                    <td className="px-6 py-4 font-medium text-white">
+                      {report.title || "Rapport sans titre"}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {formatUserName(report.author)}
+                    </td>
+                    <td className="px-6 py-4 text-xs uppercase tracking-wide text-slate-400">
+                      {report.status}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {reportDateFormatter.format(report.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          <div>
-            <h2 className="mb-2 text-lg font-semibold">Forme récente</h2>
-            <ul className="list-disc list-inside text-sm text-gray-600">
-              {player.recentForm.map((f: string, i: number) => (
-                <li key={i}>{f}</li>
-              ))}
-            </ul>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-white/20 bg-slate-900/40 p-6 text-sm text-slate-300">
+            Aucun rapport n'a encore été rédigé pour ce joueur.
+            {canCreateReport && (
+              <>
+                {" "}
+                <Link
+                  href={`/reports/new?playerId=${player.id}`}
+                  className="font-semibold text-accent hover:text-accent/80"
+                >
+                  Rédigez le premier rapport.
+                </Link>
+              </>
+            )}
           </div>
-        </section>
-
-        <aside className="space-y-6">
-          <div>
-            <h3 className="mb-2 font-semibold">Contrat & disponibilité</h3>
-            <p>Statut : {player.contract.status}</p>
-            <p>Fin : {player.contract.endDate}</p>
-            <p>Salaire : {player.contract.salary}</p>
-            <p>Indemnité : {player.contract.transferFee}</p>
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-semibold">Comparaison</h3>
-            <ul className="text-sm">
-              {player.comparison.map((c) => (
-                <li key={c.name} className="flex justify-between">
-                  <span>{c.name}</span>
-                  <span className="font-medium">{c.score}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-2 font-semibold">Rapports scouts</h3>
-            <ul className="space-y-4 text-sm">
-              {player.reports.map((r) => (
-                <li key={r.id}>
-                  <p className="font-medium">{r.scout}</p>
-                  <p className="text-gray-600">{r.summary}</p>
-                </li>
-             ))}
-            </ul>
-          </div>
-        </aside>
-      </div>
+        )}
+      </section>
     </div>
   );
 }

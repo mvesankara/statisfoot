@@ -1,4 +1,4 @@
-import { z, infer as inferType } from "../../../lib/zod.js";
+import { z, infer as inferType } from "../../../lib/zod";
 
 export const REPORT_CRITERIA = [
   { key: "technique", label: "Technique" },

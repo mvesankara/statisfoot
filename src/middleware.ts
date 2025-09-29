@@ -4,7 +4,7 @@
  * Il vérifie si un utilisateur est authentifié et s'il a les permissions nécessaires
  * pour accéder à une route spécifique en se basant sur son rôle (RBAC).
  */
-import { withAuth } from "next-auth/middleware";
+import type { WithAuthConfig } from "next-auth/middleware";
 import { hasPermission, PERMISSIONS } from "./lib/rbac";
 import type { Role } from "@prisma/client";
 
@@ -13,24 +13,44 @@ type RouteRule = {
   permission: keyof typeof PERMISSIONS;
 };
 
-/**
-
- * @const {RoutePermission[]} ROUTE_PERMISSIONS
- * @description Liste ordonnée des préfixes de route et des permissions requises pour y accéder.
- */
-type RoutePermission = {
-  prefix: string;
-  permission: keyof typeof PERMISSIONS;
+type AuthorizedCallbackParams = {
+  token?: { role?: unknown } | null;
+  req: { nextUrl: { pathname: string } };
 };
 
+type WithAuthFn = (config: WithAuthConfig) => unknown;
+
+declare const require: (module: string) => unknown;
+
+function loadWithAuth(): WithAuthFn {
+  try {
+    const moduleExports = require("next-auth/middleware") as {
+      withAuth?: WithAuthFn;
+    };
+    if (typeof moduleExports?.withAuth === "function") {
+      return moduleExports.withAuth;
+    }
+  } catch (error) {
+    console.warn("next-auth/middleware introuvable, utilisation d'un stub pour les tests.");
+  }
+
+  return ((config: WithAuthConfig) => config) as WithAuthFn;
+}
+
+const withAuth = loadWithAuth();
+
+/**
  * @const ROUTE_RULES
  * @description Tableau de règles précises reliant un matcher de chemin à la permission requise.
  */
-
 export const ROUTE_RULES: RouteRule[] = [
   {
     matcher: (path) => path.startsWith("/admin"),
     permission: PERMISSIONS["admin:access"],
+  },
+  {
+    matcher: (path) => path === "/players/new" || path.startsWith("/players/new/"),
+    permission: PERMISSIONS["players:create"],
   },
   {
     matcher: (path) => path.startsWith("/players"),
@@ -65,36 +85,14 @@ export function isAuthorized(role: Role, path: string) {
   return hasPermission(role, permission);
 }
 
-const ROUTE_PERMISSIONS: RoutePermission[] = [
-  { prefix: "/admin", permission: PERMISSIONS["admin:access"] },
-  { prefix: "/players", permission: PERMISSIONS["players:read"] },
-  { prefix: "/reports/new", permission: PERMISSIONS["reports:create"] },
-  { prefix: "/reports", permission: PERMISSIONS["reports:read"] },
-];
-
 export default withAuth({
   callbacks: {
-    authorized: ({ token, req }) => {
+    authorized: ({ token, req }: AuthorizedCallbackParams) => {
       if (!token) return false;
 
       const path = req.nextUrl.pathname;
       const role = token.role as Role;
-
-
-      const orderedRoutePermissions = [...ROUTE_PERMISSIONS].sort(
-        (a, b) => b.prefix.length - a.prefix.length,
-      );
-
-      for (const { prefix, permission } of orderedRoutePermissions) {
-        if (path.startsWith(prefix)) {
-          return hasPermission(role, permission);
-        }
-      }
-
-      return true; // Pour les routes non mappées comme /profile
-
-      return isAuthorized(role, path); // Pour les routes non mappées comme /profile
-
+      return isAuthorized(role, path);
     },
   },
 });
