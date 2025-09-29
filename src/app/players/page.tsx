@@ -1,13 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasPermission, ROLES } from "@/lib/rbac";
+
+import CreatePlayerForm from "./CreatePlayerForm";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "short",
   year: "numeric",
 });
+
+const ROLE_VALUES = Object.values(ROLES) as Role[];
 
 /**
  * @page PlayersPage
@@ -18,6 +24,12 @@ export default async function PlayersPage() {
   if (!session?.user?.id) {
     redirect("/login");
   }
+
+  const role =
+    session.user.role && ROLE_VALUES.includes(session.user.role as Role)
+      ? (session.user.role as Role)
+      : undefined;
+  const canCreatePlayer = role ? hasPermission(role, "players:create") : false;
 
   const players = await prisma.player.findMany({
     orderBy: { createdAt: "desc" },
@@ -37,6 +49,8 @@ export default async function PlayersPage() {
           {players.length} joueur{players.length > 1 ? "s" : ""} suivi{players.length > 1 ? "s" : ""}.
         </p>
       </header>
+
+      {canCreatePlayer && <CreatePlayerForm />}
 
       <div className="overflow-x-auto rounded-2xl bg-slate-900/50 ring-1 ring-white/10">
         <table className="w-full text-left text-sm text-slate-300">
@@ -91,4 +105,5 @@ export default async function PlayersPage() {
     </div>
   );
 }
+
 
