@@ -2,14 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
 
-
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/rbac";
-
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { hasPermission, ROLES } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS, ROLES } from "@/lib/rbac";
 
 import CreatePlayerForm from "./CreatePlayerForm";
 
@@ -32,16 +27,13 @@ export default async function PlayersPage() {
     redirect("/login");
   }
 
-  const role = session.user.role as Role | undefined;
-  const canCreatePlayer = role
-    ? hasPermission(role, PERMISSIONS["players:create"])
-    : false;
-
   const role =
     session.user.role && ROLE_VALUES.includes(session.user.role as Role)
       ? (session.user.role as Role)
       : undefined;
-  const canCreatePlayer = role ? hasPermission(role, "players:create") : false;
+  const canCreatePlayer = role
+    ? hasPermission(role, PERMISSIONS["players:create"])
+    : false;
 
 
   const players = await prisma.player.findMany({
