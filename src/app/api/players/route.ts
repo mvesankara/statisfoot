@@ -1,13 +1,114 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Role } from "@prisma/client";
+
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+import { createPlayerSchema, normalizePlayerInput } from "@/lib/players";
+import type { ZodIssue } from "@/lib/zod";
+
+type Session = Awaited<ReturnType<typeof auth>>;
+
+type FieldErrors = Record<string, string[]>;
+
+function buildFieldErrors(issues: ZodIssue[]): FieldErrors {
+  const result: FieldErrors = {};
+
+  for (const issue of issues) {
+    const key = issue.path.join(".") || "form";
+    if (!result[key]) {
+      result[key] = [];
+    }
+    result[key]!.push(issue.message);
+  }
+
+  return result;
+}
+
+function getAuthorizedUser(
+  session: Session,
+  permission: keyof typeof PERMISSIONS
+) {
+  const role = session?.user?.role as Role | undefined;
+  const userId = session?.user?.id;
+  if (!role || !userId) {
+    return null;
+  }
+
+  if (!hasPermission(role, permission)) {
+    return null;
+  }
+
+  return { userId, role };
+}
 
 export async function GET() {
-  const players = await prisma.player.findMany();
-  return NextResponse.json(players);
+  const session = await auth();
+  const authUser = getAuthorizedUser(session, PERMISSIONS["players:read"]);
+  if (!authUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const players = await prisma.player.findMany({
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, position: true, createdAt: true },
+    });
+
+    return NextResponse.json(players);
+  } catch (error) {
+    console.error("[Players] Failed to list players", error);
+    return NextResponse.json(
+      { error: "Impossible de récupérer la liste des joueurs." },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const data = await req.json();
-  const player = await prisma.player.create({ data });
-  return NextResponse.json(player, { status: 201 });
+  const session = await auth();
+  const authUser = getAuthorizedUser(session, PERMISSIONS["players:create"]);
+  if (!authUser) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let payload: unknown;
+  try {
+    payload = await req.json();
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Corps de requête invalide." },
+      { status: 400 }
+    );
+  }
+
+  const parsed = createPlayerSchema.safeParse(payload);
+  if (!parsed.success) {
+    const fieldErrors = buildFieldErrors(parsed.error.issues);
+    return NextResponse.json(
+      { error: "Validation échouée.", fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  const data = normalizePlayerInput(parsed.data);
+
+  try {
+    const player = await prisma.player.create({
+      data: {
+        name: data.name,
+        position: data.position,
+        creatorId: authUser.userId,
+      },
+      select: { id: true, name: true, position: true, createdAt: true },
+    });
+
+    return NextResponse.json(player, { status: 201 });
+  } catch (error) {
+    console.error("[Players] Failed to create player", error);
+    return NextResponse.json(
+      { error: "Impossible d'enregistrer ce joueur." },
+      { status: 500 }
+    );
+  }
 }
