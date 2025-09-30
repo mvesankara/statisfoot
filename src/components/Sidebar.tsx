@@ -18,7 +18,7 @@ const navItems = [
 export function Sidebar() {
   const { data: session } = useSession();
   const fullName = session?.user
-    ? ([session.user.firstname, session.user.lastname].filter(Boolean).join(" ") ||
+    ? (session.user.displayName ||
         session.user.name ||
         session.user.email ||
         "Mon compte")

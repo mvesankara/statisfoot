@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import type { Role } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
-import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
 
 const createdAtFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
@@ -20,19 +19,20 @@ const reportDateFormatter = new Intl.DateTimeFormat("fr-FR", {
 });
 
 type DisplayUser = {
-  firstname: string | null;
-  lastname: string | null;
-  name: string | null;
+  displayName: string | null;
+  username: string | null;
   email: string | null;
 } | null;
 
 function formatUserName(user: DisplayUser) {
   if (!user) return "—";
-  const parts = [user.firstname, user.lastname].filter(Boolean);
-  if (parts.length > 0) {
-    return parts.join(" ");
+  if (user.displayName) {
+    return user.displayName;
   }
-  return user.name ?? user.email ?? "—";
+  if (user.username) {
+    return `@${user.username}`;
+  }
+  return user.email ?? "—";
 }
 
 /**
@@ -49,7 +49,7 @@ export default async function PlayerProfile({
     redirect("/login");
   }
 
-  const role = session.user.role as Role | undefined;
+  const role = session.user.role as AppRole | undefined;
   const canCreateReport = role
     ? hasPermission(role, PERMISSIONS["reports:create"])
     : false;
@@ -59,9 +59,8 @@ export default async function PlayerProfile({
     include: {
       creator: {
         select: {
-          firstname: true,
-          lastname: true,
-          name: true,
+          displayName: true,
+          username: true,
           email: true,
         },
       },
@@ -76,9 +75,8 @@ export default async function PlayerProfile({
           createdAt: true,
           author: {
             select: {
-              firstname: true,
-              lastname: true,
-              name: true,
+              displayName: true,
+              username: true,
               email: true,
             },
           },

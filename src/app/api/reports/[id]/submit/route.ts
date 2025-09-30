@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Role } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
 
 // POST /api/reports/:id/submit -> submit a report
 export async function POST(
@@ -24,7 +23,7 @@ export async function POST(
     return NextResponse.json({ error: "Report not found" }, { status: 404 });
   }
 
-  const role = session.user.role as Role | undefined;
+  const role = session.user.role as AppRole | undefined;
   const canUpdate =
     existingReport.authorId === session.user.id ||
     (role ? hasPermission(role, PERMISSIONS["reports:update"]) : false);
