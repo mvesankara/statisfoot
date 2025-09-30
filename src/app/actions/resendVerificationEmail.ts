@@ -7,7 +7,6 @@
  */
 
 import { auth } from "@/lib/auth";
-import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "@/lib/email";
@@ -40,11 +39,15 @@ export async function resendVerificationEmail() {
   }
 
   const verificationToken = randomBytes(32).toString("hex");
+  const verificationExpiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
 
-  await prisma.user.update({
-    where: { id: user.id },
-    data: {
-      emailVerificationToken: verificationToken,
+  await prisma.emailVerificationToken.upsert({
+    where: { userId: user.id },
+    update: { token: verificationToken, expiresAt: verificationExpiresAt },
+    create: {
+      userId: user.id,
+      token: verificationToken,
+      expiresAt: verificationExpiresAt,
     },
   });
 

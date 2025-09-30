@@ -1,11 +1,10 @@
 "use server";
 
-import type { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission, PERMISSIONS, ROLES } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS, ROLES, type AppRole } from "@/lib/rbac";
 import {
   createPlayerSchema,
   normalizePlayerInput,
@@ -14,13 +13,13 @@ import {
 
 import type { CreatePlayerState } from "./state";
 
-const ROLE_VALUES = Object.values(ROLES) as Role[];
+const ROLE_VALUES = Object.values(ROLES) as AppRole[];
 
-function resolveRole(value: string | undefined | null): Role | null {
+function resolveRole(value: string | undefined | null): AppRole | null {
   if (!value) {
     return null;
   }
-  return ROLE_VALUES.includes(value as Role) ? (value as Role) : null;
+  return ROLE_VALUES.includes(value as AppRole) ? (value as AppRole) : null;
 }
 
 export async function persistPlayer(input: CreatePlayerInput) {

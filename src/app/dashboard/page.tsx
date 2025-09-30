@@ -8,8 +8,9 @@ import { QuickFavorites } from "@/components/dashboard/QuickFavorites";
 import { ReportRequests } from "@/components/dashboard/ReportRequests";
 import { PlayerFilters } from "@/components/dashboard/PlayerFilters";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import type { AppRole } from "@/lib/rbac";
 
-type UserRole = "SCOUT" | "RECRUITER" | "AGENT" | "ADMIN";
+type UserRole = AppRole;
 
 const roleLabels: Record<UserRole, string> = {
   SCOUT: "Scout",
@@ -159,7 +160,7 @@ export default async function DashboardPage() {
   const lastReportDate = recentReports[0]?.createdAt ?? null;
 
   const displayName =
-    [session.user.firstname, session.user.lastname].filter(Boolean).join(" ") ||
+    session.user.displayName ||
     session.user.name ||
     session.user.email ||
     "Utilisateur";

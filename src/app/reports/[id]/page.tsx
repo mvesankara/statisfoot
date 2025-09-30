@@ -41,8 +41,8 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
       author: {
         select: {
           id: true,
-          firstname: true,
-          lastname: true,
+          displayName: true,
+          username: true,
           email: true,
         },
       },
@@ -61,7 +61,8 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
   }
 
   const authorName =
-    [report.author?.firstname, report.author?.lastname].filter(Boolean).join(" ") ||
+    report.author?.displayName ||
+    (report.author?.username ? `@${report.author.username}` : undefined) ||
     report.author?.email ||
     "Auteur inconnu";
 
