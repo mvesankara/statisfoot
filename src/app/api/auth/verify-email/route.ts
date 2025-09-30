@@ -9,9 +9,12 @@ export async function GET(request: Request) {
     return new NextResponse("Token manquant", { status: 400 });
   }
 
-  const user = await prisma.user.findFirst({
+  const user = await prisma.user.findUnique({
     where: {
       emailVerificationToken: token,
+    },
+    select: {
+      id: true,
     },
   });
 

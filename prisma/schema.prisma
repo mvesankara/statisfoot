@@ -73,6 +73,8 @@ model User {
   displayName    String
   avatarUrl      String?
   orgId          String?
+  emailVerified  DateTime?
+  emailVerificationToken String? @unique
   organization   Organization?   @relation(fields: [orgId], references: [id])
   roles          UserRole[]
   bio            String?

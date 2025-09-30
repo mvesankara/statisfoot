@@ -7,7 +7,6 @@
  */
 
 import { auth } from "@/lib/auth";
-import type { Session } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { sendVerificationEmail } from "@/lib/email";
@@ -29,6 +28,11 @@ export async function resendVerificationEmail() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      emailVerified: true,
+    },
   });
 
   if (!user) {
