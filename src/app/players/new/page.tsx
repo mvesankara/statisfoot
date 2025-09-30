@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import type { Role } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
-import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
 import { NewPlayerForm } from "./NewPlayerForm";
 
 /**
@@ -16,7 +15,7 @@ export default async function NewPlayerPage() {
     redirect("/login");
   }
 
-  const role = session.user.role as Role | undefined;
+  const role = session.user.role as AppRole | undefined;
   const canCreatePlayer = role
     ? hasPermission(role, PERMISSIONS["players:create"])
     : false;

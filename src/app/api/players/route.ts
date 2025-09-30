@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Role } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission, PERMISSIONS } from "@/lib/rbac";
+import { hasPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
 import {
   createPlayerSchema,
   normalizePlayerInput,
@@ -33,7 +32,7 @@ function getAuthorizedUser(
   session: Session,
   permission: (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
 ) {
-  const role = session?.user?.role as Role | undefined;
+  const role = session?.user?.role as AppRole | null | undefined;
   const userId = session?.user?.id;
 
   if (!role || !userId) {
