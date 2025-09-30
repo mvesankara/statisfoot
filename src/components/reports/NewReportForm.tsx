@@ -7,13 +7,9 @@ import { formatPrimaryPosition } from "@/lib/players";
 
 type PlayerOption = {
   id: string;
-
+  displayName?: string;
   fullName: string;
   primaryPosition: string | null;
-
-  displayName: string;
-  primaryPosition?: string | null;
-
 };
 
 interface NewReportFormProps {
@@ -90,20 +86,17 @@ export function NewReportForm({ players }: NewReportFormProps) {
             className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
             disabled={players.length === 0}
           >
-            {players.map((player) => (
-              <option key={player.id} value={player.id}>
-
-                {player.fullName}
-                {player.primaryPosition
-                  ? ` · ${formatPrimaryPosition(player.primaryPosition)} (${player.primaryPosition})`
-
-                {player.displayName}
-                {player.primaryPosition
-                  ? ` · ${player.primaryPosition.toLowerCase()}`
-
-                  : ""}
-              </option>
-            ))}
+            {players.map((player) => {
+              const label = player.displayName || player.fullName;
+              return (
+                <option key={player.id} value={player.id}>
+                  {label}
+                  {player.primaryPosition
+                    ? ` · ${formatPrimaryPosition(player.primaryPosition)} (${player.primaryPosition})`
+                    : ""}
+                </option>
+              );
+            })}
           </select>
         </label>
         <label className="flex flex-col gap-2 text-sm text-slate-200">

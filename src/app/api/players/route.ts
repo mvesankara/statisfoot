@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
   let payload: unknown;
   try {
     payload = await req.json();
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Corps de requête invalide." },
       { status: 400 }

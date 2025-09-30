@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 import { Navbar } from "@/components/Navbar";
 
 /**
@@ -15,10 +17,13 @@ export default function Home() {
       {/* HERO avec bannière */}
       <section className="relative isolate overflow-hidden">
         {/* Image de fond */}
-        <img
+        <Image
           src="/hero1.png"
           alt="Joueurs de football"
-          className="absolute inset-0 -z-10 h-full w-full object-cover"
+          fill
+          priority
+          sizes="100vw"
+          className="-z-10 object-cover"
         />
 
         {/* Overlay bleu foncé transparent */}

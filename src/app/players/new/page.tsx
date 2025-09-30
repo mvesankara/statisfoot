@@ -6,7 +6,7 @@ import { NewPlayerForm } from "./NewPlayerForm";
 
 /**
  * @page NewPlayerPage
- * @description Page de création d'un joueur.
+ * @description Page de création d’un joueur.
  */
 export default async function NewPlayerPage() {
   const session = await auth();
@@ -30,7 +30,7 @@ export default async function NewPlayerPage() {
         <p className="text-sm text-slate-400">Créer un nouveau joueur</p>
         <h1 className="text-3xl font-bold text-white">Ajouter un joueur</h1>
         <p className="text-sm text-slate-400">
-          Renseignez les informations de base du joueur pour l'ajouter à votre base
+          Renseignez les informations de base du joueur pour l’ajouter à votre base
           Statisfoot. Vous pourrez enrichir sa fiche avec des rapports et des
           évaluations par la suite.
         </p>
