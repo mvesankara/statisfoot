@@ -23,17 +23,14 @@ function resolveRole(value: string | undefined | null): Role | null {
   return ROLE_VALUES.includes(value as Role) ? (value as Role) : null;
 }
 
-export async function persistPlayer(
-  input: CreatePlayerInput,
-  creatorId: string
-) {
+export async function persistPlayer(input: CreatePlayerInput) {
   const normalized = normalizePlayerInput(input);
 
   return prisma.player.create({
     data: {
-      name: normalized.name,
-      position: normalized.position.toUpperCase(),
-      creatorId,
+      firstName: normalized.firstName,
+      lastName: normalized.lastName,
+      primaryPosition: normalized.primaryPosition,
     },
   });
 }
@@ -62,8 +59,9 @@ export async function createPlayer(
   }
 
   const candidate = {
-    name: String(formData.get("name") ?? "").trim(),
-    position: String(formData.get("position") ?? "").trim(),
+    firstName: String(formData.get("firstName") ?? "").trim(),
+    lastName: String(formData.get("lastName") ?? "").trim(),
+    primaryPosition: String(formData.get("primaryPosition") ?? "").trim(),
   } satisfies Record<string, unknown>;
 
   const parsed = createPlayerSchema.safeParse(candidate);
@@ -72,7 +70,7 @@ export async function createPlayer(
     const fieldErrors: CreatePlayerState["errors"] = {};
     for (const issue of parsed.error.issues) {
       const field = issue.path[0];
-      if (field === "name" || field === "position") {
+      if (field === "firstName" || field === "lastName" || field === "primaryPosition") {
         fieldErrors[field] = issue.message;
       }
     }
@@ -85,7 +83,7 @@ export async function createPlayer(
   }
 
   try {
-    await persistPlayer(parsed.data, session.user.id);
+    await persistPlayer(parsed.data);
   } catch (error) {
     console.error("Failed to create player", error);
     return {

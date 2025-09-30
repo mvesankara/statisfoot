@@ -3,10 +3,12 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { formatPrimaryPosition } from "@/lib/players";
+
 type PlayerOption = {
   id: string;
-  name: string;
-  position: string;
+  fullName: string;
+  primaryPosition: string | null;
 };
 
 interface NewReportFormProps {
@@ -85,7 +87,10 @@ export function NewReportForm({ players }: NewReportFormProps) {
           >
             {players.map((player) => (
               <option key={player.id} value={player.id}>
-                {player.name} · {player.position.toLowerCase()}
+                {player.fullName}
+                {player.primaryPosition
+                  ? ` · ${formatPrimaryPosition(player.primaryPosition)} (${player.primaryPosition})`
+                  : ""}
               </option>
             ))}
           </select>

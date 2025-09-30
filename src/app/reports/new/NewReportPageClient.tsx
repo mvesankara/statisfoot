@@ -5,12 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  formatPlayerName,
+  formatPrimaryPosition,
+} from "@/lib/players";
 import { RECOMMENDATIONS, reportSchema, submitReport, type ReportFormValues } from "./form-utils";
 
 type PlayerOption = {
   id: string;
   label: string;
-  position?: string;
+  primaryPosition?: string | null;
 };
 
 type ToastState = {
@@ -18,25 +22,34 @@ type ToastState = {
   message: string;
 };
 
-type NewReportPageClientProps = {
-  initialPlayers: { id: string; name: string | null; position: string | null }[];
+type PlayerListItem = {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  primaryPosition: string | null;
+  fullName?: string | null;
 };
 
-function formatPlayerLabel(player: any): string {
-  if (player?.name) return player.name;
-  const parts = [player?.firstname, player?.lastname].filter(Boolean);
-  if (parts.length > 0) return parts.join(" ");
-  if (player?.firstName || player?.lastName) {
-    return [player?.firstName, player?.lastName].filter(Boolean).join(" ");
-  }
-  return player?.id ?? "Joueur";
+type NewReportPageClientProps = {
+  initialPlayers: PlayerListItem[];
+};
+
+function formatPlayerLabel(player: {
+  id?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+}): string {
+  if (player?.fullName) return player.fullName;
+  const label = formatPlayerName(player?.firstName, player?.lastName);
+  return label.length > 0 ? label : player?.id ?? "Joueur";
 }
 
-function mapPlayersToOptions(payload: any[]): PlayerOption[] {
-  return payload.map((player: any) => ({
+function mapPlayersToOptions(payload: PlayerListItem[]): PlayerOption[] {
+  return payload.map((player) => ({
     id: player.id,
     label: formatPlayerLabel(player),
-    position: player.position ?? player.role ?? undefined,
+    primaryPosition: player.primaryPosition,
   }));
 }
 
@@ -102,11 +115,11 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
       if (!response.ok) {
         throw new Error("Erreur réseau");
       }
-      const payload = await response.json();
+      const payload = (await response.json()) as unknown;
       if (!Array.isArray(payload)) {
         throw new Error("Réponse inattendue");
       }
-      const nextPlayers = mapPlayersToOptions(payload);
+      const nextPlayers = mapPlayersToOptions(payload as PlayerListItem[]);
       if (isMounted.current) {
         setPlayers(nextPlayers);
       }
@@ -221,7 +234,9 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                 {players.map((player) => (
                   <option key={player.id} value={player.id}>
                     {player.label}
-                    {player.position ? ` · ${player.position}` : ""}
+                    {player.primaryPosition
+                      ? ` · ${formatPrimaryPosition(player.primaryPosition)} (${player.primaryPosition})`
+                      : ""}
                   </option>
                 ))}
               </select>

@@ -7,6 +7,10 @@ import {
   initialCreatePlayerState,
   type CreatePlayerState,
 } from "@/app/players/state";
+import {
+  POSITION_GROUP_VALUES,
+  formatPrimaryPosition,
+} from "@/lib/players";
 
 export function CreatePlayerForm() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -29,39 +33,64 @@ export function CreatePlayerForm() {
     >
       <div className="space-y-1">
         <h2 className="text-lg font-semibold text-white">Ajouter un joueur</h2>
-        <p className="text-sm text-slate-400">
-          Renseignez le nom complet du joueur et son poste principal.
-        </p>
+          <p className="text-sm text-slate-400">
+            Renseignez le prénom, le nom de famille et sélectionnez le poste principal.
+          </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="text-sm text-slate-300">
-            Nom complet
+          <label htmlFor="firstName" className="text-sm text-slate-300">
+            Prénom
           </label>
           <input
-            id="name"
-            name="name"
+            id="firstName"
+            name="firstName"
             required
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-sky"
           />
-          {state.errors.name && (
-            <p className="text-xs text-red-400">{state.errors.name}</p>
+          {state.errors.firstName && (
+            <p className="text-xs text-red-400">{state.errors.firstName}</p>
           )}
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="position" className="text-sm text-slate-300">
-            Poste principal
+          <label htmlFor="lastName" className="text-sm text-slate-300">
+            Nom
           </label>
           <input
-            id="position"
-            name="position"
+            id="lastName"
+            name="lastName"
             required
             className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:border-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-sky"
           />
-          {state.errors.position && (
-            <p className="text-xs text-red-400">{state.errors.position}</p>
+          {state.errors.lastName && (
+            <p className="text-xs text-red-400">{state.errors.lastName}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="primaryPosition" className="text-sm text-slate-300">
+            Poste principal
+          </label>
+          <select
+            id="primaryPosition"
+            name="primaryPosition"
+            required
+            className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 focus:border-brand-sky focus:outline-none focus:ring-2 focus:ring-brand-sky"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Sélectionnez un poste
+            </option>
+            {POSITION_GROUP_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {formatPrimaryPosition(value)} ({value})
+              </option>
+            ))}
+          </select>
+          {state.errors.primaryPosition && (
+            <p className="text-xs text-red-400">{state.errors.primaryPosition}</p>
           )}
         </div>
       </div>

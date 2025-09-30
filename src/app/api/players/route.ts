@@ -7,6 +7,7 @@ import { hasPermission, PERMISSIONS } from "@/lib/rbac";
 import {
   createPlayerSchema,
   normalizePlayerInput,
+  formatPlayerName,
 } from "@/lib/players";
 import type { ZodIssue } from "@/lib/zod";
 
@@ -56,11 +57,21 @@ export async function GET() {
 
   try {
     const players = await prisma.player.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, position: true, createdAt: true },
+      orderBy: { lastName: "asc" },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        primaryPosition: true,
+      },
     });
 
-    return NextResponse.json(players);
+    const payload = players.map((player) => ({
+      ...player,
+      fullName: formatPlayerName(player.firstName, player.lastName),
+    }));
+
+    return NextResponse.json(payload);
   } catch (error) {
     console.error("[Players] Failed to list players", error);
     return NextResponse.json(
@@ -102,14 +113,25 @@ export async function POST(req: NextRequest) {
   try {
     const player = await prisma.player.create({
       data: {
-        name: normalized.name,
-        position: normalized.position.toUpperCase(),
-        creatorId: authUser.userId,
+        firstName: normalized.firstName,
+        lastName: normalized.lastName,
+        primaryPosition: normalized.primaryPosition,
       },
-      select: { id: true, name: true, position: true, createdAt: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        primaryPosition: true,
+      },
     });
 
-    return NextResponse.json(player, { status: 201 });
+    return NextResponse.json(
+      {
+        ...player,
+        fullName: formatPlayerName(player.firstName, player.lastName),
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("[Players] Failed to create player", error);
     return NextResponse.json(
