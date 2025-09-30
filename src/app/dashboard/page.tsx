@@ -117,12 +117,22 @@ export default async function DashboardPage() {
   const userId = session.user.id;
   const role = (session.user.role ?? "SCOUT") as UserRole;
 
-  const [recentReports, totalReports, playersCount] = await Promise.all([
+  const [recentReportsRaw, totalReports, playersCount] = await Promise.all([
     prisma.report.findMany({
       where: { authorId: userId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        matchDate: true,
+        summary: true,
         player: {
-          select: { id: true, name: true, position: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            primaryPosition: true,
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -131,6 +141,20 @@ export default async function DashboardPage() {
     prisma.report.count({ where: { authorId: userId } }),
     prisma.player.count(),
   ]);
+
+  const recentReports: DashboardReport[] = recentReportsRaw.map((report) => ({
+    id: report.id,
+    status: report.status,
+    createdAt: report.createdAt,
+    matchDate: report.matchDate,
+    content: report.summary ?? "",
+    player: {
+      id: report.player.id,
+      firstName: report.player.firstName,
+      lastName: report.player.lastName,
+      primaryPosition: report.player.primaryPosition,
+    },
+  }));
 
   const lastReportDate = recentReports[0]?.createdAt ?? null;
 

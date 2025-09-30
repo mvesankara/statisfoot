@@ -64,6 +64,9 @@ export default async function ReportsPage() {
                 Statut
               </th>
               <th scope="col" className="px-6 py-3">
+                Match observé
+              </th>
+              <th scope="col" className="px-6 py-3">
                 Créé le
               </th>
               <th scope="col" className="px-6 py-3">
@@ -89,6 +92,9 @@ export default async function ReportsPage() {
                     : "—"}
                 </td>
                 <td className="px-6 py-4 text-sm capitalize">{report.status.toLowerCase()}</td>
+                <td className="px-6 py-4 text-sm">
+                  {report.matchDate ? dateFormatter.format(report.matchDate) : "—"}
+                </td>
                 <td className="px-6 py-4 text-sm">{dateFormatter.format(report.createdAt)}</td>
                 <td className="px-6 py-4 text-right text-sm">
                   <Link href={`/reports/${report.id}`} className="text-accent hover:text-accent/80">
