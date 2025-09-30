@@ -1,15 +1,5 @@
 import { z, infer as inferType } from "../../../lib/zod";
 
-export const REPORT_CRITERIA = [
-  { key: "technique", label: "Technique" },
-  { key: "physique", label: "Physique" },
-  { key: "tactique", label: "Tactique" },
-  { key: "mental", label: "Mental" },
-  { key: "potentiel", label: "Potentiel" },
-] as const;
-
-export type CriteriaKey = (typeof REPORT_CRITERIA)[number]["key"];
-
 export const RECOMMENDATIONS = [
   { value: "sign", label: "Recommander la signature" },
   { value: "monitor", label: "Surveiller régulièrement" },
@@ -17,102 +7,77 @@ export const RECOMMENDATIONS = [
   { value: "avoid", label: "Ne pas recommander" },
 ] as const;
 
-export const STATUS_OPTIONS = [
-  { value: "draft", label: "Brouillon" },
-  { value: "published", label: "Publié" },
-] as const;
-
 type RecommendationValue = (typeof RECOMMENDATIONS)[number]["value"];
-type StatusValue = (typeof STATUS_OPTIONS)[number]["value"];
 
 const recommendationValues = RECOMMENDATIONS.map((option) => option.value) as RecommendationValue[];
-const statusValues = STATUS_OPTIONS.map((option) => option.value) as StatusValue[];
 
-const noteField = z
+const ratingField = z
   .string()
-  .min(1, "La note est requise")
-  .refine((value) => !Number.isNaN(Number(value)), "La note doit être un nombre")
-  .refine(
-    (value) => {
-      const numeric = Number(value);
-      return numeric >= 0 && numeric <= 10;
-    },
-    "La note doit être comprise entre 0 et 10"
-  );
+  .refine((value) => {
+    if (value.trim().length === 0) return true;
+    const numeric = Number(value);
+    return Number.isInteger(numeric) && numeric >= 0 && numeric <= 10;
+  }, "La note doit être un entier entre 0 et 10")
+  .optional();
+
+const longTextField = z
+  .string()
+  .max(5000, "Le texte est trop long")
+  .optional();
 
 export const reportSchema = z.object({
   playerId: z.string().min(1, "Sélectionnez un joueur"),
-  title: z.string().min(3, "Le titre doit contenir au moins 3 caractères").max(120, "Titre trop long"),
-  summary: z
+  title: z
     .string()
-    .min(20, "Le résumé doit contenir au moins 20 caractères")
-    .max(1000, "Le résumé est trop long"),
-  notes: z.object(
-    REPORT_CRITERIA.reduce((shape, criterion) => {
-      return { ...shape, [criterion.key]: noteField };
-    }, {} as Record<CriteriaKey, typeof noteField>)
-  ),
+    .min(3, "Le titre doit contenir au moins 3 caractères")
+    .max(255, "Titre trop long"),
+  content: z
+    .string()
+    .min(20, "Les observations doivent contenir au moins 20 caractères")
+    .max(5000, "Les observations sont trop longues"),
+  rating: ratingField,
+  strengths: longTextField,
+  weaknesses: longTextField,
   recommendation: z
     .string()
-    .min(1, "Choisissez une recommandation")
     .refine(
-      (value) => recommendationValues.includes(value as RecommendationValue),
-      "Choisissez une recommandation"
-    ),
-  status: z
+      (value) => value.trim().length === 0 || recommendationValues.includes(value as RecommendationValue),
+      "Choisissez une recommandation valide"
+    )
+    .optional(),
+  matchDate: z
     .string()
-    .min(1, "Choisissez un statut")
-    .refine((value) => statusValues.includes(value as StatusValue), "Choisissez un statut"),
-  analysis: z.string().max(5000, "Les observations sont trop longues").optional(),
+    .refine((value) => {
+      if (value.trim().length === 0) return true;
+      const parsed = new Date(value);
+      return !Number.isNaN(parsed.getTime());
+    }, "Date de match invalide")
+    .optional(),
 });
 
 export type ReportFormValues = inferType<typeof reportSchema>;
 
-export type AttachmentDescriptor = {
-  name: string;
-  size: number;
-  type: string;
-};
-
-export function buildEmptyNotes(): Record<CriteriaKey, string> {
-  return REPORT_CRITERIA.reduce((acc, criterion) => {
-    acc[criterion.key] = "";
-    return acc;
-  }, {} as Record<CriteriaKey, string>);
-}
-
-export function buildReportPayload(
-  values: ReportFormValues,
-  attachments: AttachmentDescriptor[]
-) {
-  const numericNotes = Object.entries(values.notes).reduce<Record<string, number>>(
-    (acc, [key, value]) => {
-      acc[key] = Number(value);
-      return acc;
-    },
-    {}
-  );
+export function buildReportPayload(values: ReportFormValues) {
+  const rating = values.rating && values.rating.trim().length > 0 ? Number(values.rating) : undefined;
+  const matchDate = values.matchDate && values.matchDate.trim().length > 0 ? values.matchDate : undefined;
 
   return {
     playerId: values.playerId,
     title: values.title,
-    content: JSON.stringify({
-      summary: values.summary,
-      notes: numericNotes,
-      recommendation: values.recommendation,
-      analysis: values.analysis ?? "",
-      attachments,
-    }),
-    status: values.status,
+    content: values.content,
+    rating,
+    strengths: values.strengths && values.strengths.trim().length > 0 ? values.strengths : undefined,
+    weaknesses: values.weaknesses && values.weaknesses.trim().length > 0 ? values.weaknesses : undefined,
+    recommendation:
+      values.recommendation && values.recommendation.trim().length > 0
+        ? values.recommendation
+        : undefined,
+    matchDate: matchDate ?? undefined,
   };
 }
 
-export async function submitReport(
-  values: ReportFormValues,
-  attachments: AttachmentDescriptor[],
-  fetchImpl: typeof fetch = fetch
-) {
-  const payload = buildReportPayload(values, attachments);
+export async function submitReport(values: ReportFormValues, fetchImpl: typeof fetch = fetch) {
+  const payload = buildReportPayload(values);
   const response = await fetchImpl("/api/reports", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

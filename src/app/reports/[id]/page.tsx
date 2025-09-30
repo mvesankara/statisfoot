@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
@@ -29,7 +30,14 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
   const report = await prisma.report.findUnique({
     where: { id: params.id },
     include: {
-      player: { select: { id: true, name: true, position: true } },
+      player: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          primaryPosition: true,
+        },
+      },
       author: {
         select: {
           id: true,
@@ -57,11 +65,16 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
     report.author?.email ||
     "Auteur inconnu";
 
+  const playerName = formatPlayerName(report.player.firstName, report.player.lastName);
+  const playerPositionLabel = report.player.primaryPosition
+    ? formatPrimaryPosition(report.player.primaryPosition)
+    : "—";
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm text-slate-400">Rapport sur {report.player.name}</p>
+          <p className="text-sm text-slate-400">Rapport sur {playerName}</p>
           <h1 className="text-3xl font-bold text-white">Rapport #{report.id}</h1>
         </div>
         <Link
@@ -84,9 +97,9 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
             <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
               Joueur
             </h3>
-            <p className="mt-2 text-lg font-semibold text-white">{report.player.name}</p>
+            <p className="mt-2 text-lg font-semibold text-white">{playerName}</p>
             <p className="text-sm text-slate-300">
-              Poste&nbsp;: {report.player.position.toLowerCase()}
+              Poste&nbsp;: {playerPositionLabel}
             </p>
             <p className="text-xs text-slate-500">ID {report.player.id}</p>
           </div>

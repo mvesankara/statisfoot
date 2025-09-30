@@ -1,6 +1,4 @@
 import {
-  REPORT_CRITERIA,
-  buildEmptyNotes,
   buildReportPayload,
   reportSchema,
   submitReport,
@@ -8,21 +6,16 @@ import {
 } from "../src/app/reports/new/form-utils.js";
 import { assert, runTests, type TestCase } from "./test-helpers.js";
 
-type AttachmentMock = { name: string; size: number; type: string };
-
 function createValidValues(): ReportFormValues {
-  const notes = buildEmptyNotes();
-  for (const key of Object.keys(notes)) {
-    notes[key as keyof typeof notes] = "7";
-  }
   return {
     playerId: "player-1",
     title: "Analyse complète",
-    summary: "Le joueur a réalisé une prestation solide avec une bonne implication.",
-    notes,
+    content: "Le joueur a réalisé une prestation solide avec une bonne implication.",
+    rating: "7",
+    strengths: "Vision de jeu remarquable",
+    weaknesses: "Doit gagner en impact dans les duels",
     recommendation: "sign",
-    status: "draft",
-    analysis: "A confirmer face à un adversaire plus physique.",
+    matchDate: "2024-09-28",
   };
 }
 
@@ -52,33 +45,26 @@ const tests: TestCase[] = [
     name: "reportSchema signale une erreur lorsque la note dépasse 10",
     run: () => {
       const values = createValidValues();
-      values.notes[REPORT_CRITERIA[0].key] = "11";
+      values.rating = "11";
       const result = reportSchema.safeParse(values);
       assert.equal(result.success, false);
       if (!result.success) {
-        const issue = result.error.issues.find(
-          (item) => item.path.join(".") === `notes.${REPORT_CRITERIA[0].key}`
-        );
+        const issue = result.error.issues.find((item) => item.path.join(".") === "rating");
         assert.ok(issue);
       }
     },
   },
   {
-    name: "buildReportPayload structure les données avec les pièces jointes",
+    name: "buildReportPayload structure les données attendues",
     run: () => {
       const values = createValidValues();
-      const attachments: AttachmentMock[] = [
-        { name: "sequence.mp4", size: 1024, type: "video/mp4" },
-        { name: "rapport.pdf", size: 2048, type: "application/pdf" },
-      ];
-      const payload = buildReportPayload(values, attachments);
+      const payload = buildReportPayload(values);
       assert.equal(payload.playerId, values.playerId);
       assert.equal(payload.title, values.title);
-      assert.equal(payload.status, values.status);
-      const content = JSON.parse(payload.content);
-      assert.equal(content.summary, values.summary);
-      assert.equal(content.notes[REPORT_CRITERIA[0].key], Number(values.notes[REPORT_CRITERIA[0].key]));
-      assert.deepEqual(content.attachments, attachments);
+      assert.equal(payload.content, values.content);
+      assert.equal(payload.rating, Number(values.rating));
+      assert.equal(payload.recommendation, values.recommendation);
+      assert.equal(payload.matchDate, values.matchDate);
     },
   },
   {
@@ -86,7 +72,7 @@ const tests: TestCase[] = [
     run: async () => {
       const { mock, calls } = createFetchMock([{ ok: true }]);
       const values = createValidValues();
-      const payload = await submitReport(values, [], mock as unknown as typeof fetch);
+      const payload = await submitReport(values, mock as unknown as typeof fetch);
       assert.equal(calls.length, 1);
       const [, options] = calls[0];
       assert.equal(options.method, "POST");
@@ -99,7 +85,7 @@ const tests: TestCase[] = [
     run: async () => {
       const { mock } = createFetchMock([{ ok: false, body: { error: "Erreur" } }]);
       const values = createValidValues();
-      await assert.rejects(() => submitReport(values, [], mock as unknown as typeof fetch), /Erreur/);
+      await assert.rejects(() => submitReport(values, mock as unknown as typeof fetch), /Erreur/);
     },
   },
 ];

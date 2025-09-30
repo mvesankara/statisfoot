@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
 
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
@@ -22,7 +23,14 @@ export default async function ReportsPage() {
   const reports = await prisma.report.findMany({
     where: { authorId: session.user.id },
     include: {
-      player: { select: { id: true, name: true, position: true } },
+      player: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          primaryPosition: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -70,10 +78,16 @@ export default async function ReportsPage() {
                 className="border-b border-slate-800/60 hover:bg-slate-800/40"
               >
                 <th scope="row" className="px-6 py-4 font-medium text-white">
-                  <span className="block text-sm">{report.player.name}</span>
+                  <span className="block text-sm">
+                    {formatPlayerName(report.player.firstName, report.player.lastName)}
+                  </span>
                   <span className="block text-xs text-slate-400">ID {report.player.id}</span>
                 </th>
-                <td className="px-6 py-4 capitalize">{report.player.position.toLowerCase()}</td>
+                <td className="px-6 py-4 capitalize">
+                  {report.player.primaryPosition
+                    ? formatPrimaryPosition(report.player.primaryPosition)
+                    : "—"}
+                </td>
                 <td className="px-6 py-4 text-sm capitalize">{report.status.toLowerCase()}</td>
                 <td className="px-6 py-4 text-sm">{dateFormatter.format(report.createdAt)}</td>
                 <td className="px-6 py-4 text-right text-sm">

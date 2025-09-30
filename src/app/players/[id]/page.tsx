@@ -4,6 +4,7 @@ import type { Role } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
 import { hasPermission, PERMISSIONS } from "@/lib/rbac";
 
 const createdAtFormatter = new Intl.DateTimeFormat("fr-FR", {
@@ -91,6 +92,10 @@ export default async function PlayerProfile({
   }
 
   const creatorLabel = formatUserName(player.creator);
+  const playerFullName = formatPlayerName(player.firstName, player.lastName) || "Joueur";
+  const primaryPositionLabel = player.primaryPosition
+    ? formatPrimaryPosition(player.primaryPosition)
+    : "—";
 
   return (
     <div className="space-y-10">
@@ -100,9 +105,9 @@ export default async function PlayerProfile({
             <span>Fiche joueur</span>
             <span>ID Statisfoot : {player.id}</span>
           </div>
-          <h1 className="text-3xl font-bold text-white">{player.name}</h1>
+          <h1 className="text-3xl font-bold text-white">{playerFullName}</h1>
           <p className="text-sm text-slate-300">
-            Poste principal : <span className="font-medium text-white">{player.position}</span>
+            Poste principal : <span className="font-medium text-white">{primaryPositionLabel}</span>
           </p>
           <dl className="grid grid-cols-1 gap-4 text-sm text-slate-300 sm:grid-cols-3">
             <div>
