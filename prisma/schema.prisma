@@ -14,6 +14,7 @@ enum UserRoleEnum {
   COACH
   RECRUITER
   VIEWER
+  AGENT
 }
 
 enum Visibility {
@@ -66,6 +67,7 @@ model Organization {
 }
 
 model User {
+
   id             String          @id @default(cuid())
   email          String          @unique
   username       String          @unique
@@ -93,7 +95,46 @@ model User {
   mediaAssets    MediaAsset[]    @relation("media_assets")
   reportVersions ReportVersion[] @relation("report_versions")
 
+  id                String                  @id @default(cuid())
+  email             String                  @unique
+  username          String                  @unique
+  hashedPass        String
+  displayName       String
+  emailVerified     DateTime?
+  avatarUrl         String?
+  orgId             String?
+  organization      Organization?           @relation(fields: [orgId], references: [id])
+  roles             UserRole[]
+  emailVerification EmailVerificationToken?
+  bio               String?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  disabledAt        DateTime?
+  comments          Comment[]
+  reactions         Reaction[]
+  follows           Follow[]                @relation("user_follows")
+  followers         Follow[]                @relation("user_followers")
+  notifications     Notification[]
+  reports           Report[]                @relation("report_author")
+  auditLogs         AuditLog[]              @relation("audit_logs")
+  addedTags         PlayerTag[]             @relation("player_tags")
+  reviews           ReportReview[]          @relation("report_reviews")
+  mediaAssets       MediaAsset[]            @relation("media_assets")
+  reportVersions    ReportVersion[]         @relation("report_versions")
+
+
   @@index([orgId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([token])
 }
 
 model Role {
