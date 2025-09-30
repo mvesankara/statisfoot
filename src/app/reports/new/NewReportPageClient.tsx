@@ -1,27 +1,11 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  REPORT_CRITERIA,
-  RECOMMENDATIONS,
-  STATUS_OPTIONS,
-  buildEmptyNotes,
-  reportSchema,
-  submitReport,
-  type AttachmentDescriptor,
-  type ReportFormValues,
-} from "./form-utils";
+import { RECOMMENDATIONS, reportSchema, submitReport, type ReportFormValues } from "./form-utils";
 
 type PlayerOption = {
   id: string;
@@ -72,8 +56,6 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
   const [playersError, setPlayersError] = useState<string | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [attachments, setAttachments] = useState<File[]>([]);
-
   const isMounted = useRef(true);
   const redirectTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -86,8 +68,6 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
     };
   }, []);
 
-  const defaultNotes = useMemo(() => buildEmptyNotes(), []);
-
   const {
     register,
     handleSubmit,
@@ -99,11 +79,12 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
     defaultValues: {
       playerId: initialPlayerId,
       title: "",
-      summary: "",
-      notes: defaultNotes,
+      content: "",
+      rating: "",
+      strengths: "",
+      weaknesses: "",
       recommendation: "",
-      status: "draft",
-      analysis: "",
+      matchDate: "",
     },
   });
 
@@ -149,26 +130,20 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
     setSubmitError(null);
     setToast(null);
 
-    const attachmentMetadata: AttachmentDescriptor[] = attachments.map((file) => ({
-      name: file.name,
-      size: file.size,
-      type: file.type,
-    }));
-
     try {
-      await submitReport(values, attachmentMetadata);
+      await submitReport(values);
 
       setToast({ type: "success", message: "Rapport enregistré avec succès." });
       reset({
         playerId: values.playerId,
         title: "",
-        summary: "",
-        notes: buildEmptyNotes(),
+        content: "",
+        rating: "",
+        strengths: "",
+        weaknesses: "",
         recommendation: "",
-        status: values.status,
-        analysis: "",
+        matchDate: "",
       });
-      setAttachments([]);
 
       redirectTimeout.current = setTimeout(() => {
         router.push(`/players/${values.playerId}`);
@@ -178,11 +153,6 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
       setSubmitError(message);
       setToast({ type: "error", message });
     }
-  };
-
-  const handleAttachmentsChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files ? Array.from(event.target.files) : [];
-    setAttachments(files);
   };
 
   if (sessionStatus === "loading") {
@@ -276,22 +246,17 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
             </div>
 
             <div>
-              <label htmlFor="status" className="mb-1 block text-sm font-medium text-gray-700">
-                Statut
+              <label htmlFor="matchDate" className="mb-1 block text-sm font-medium text-gray-700">
+                Date du match (optionnel)
               </label>
-              <select
-                id="status"
-                {...register("status")}
+              <input
+                id="matchDate"
+                type="date"
+                {...register("matchDate")}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              >
-                {STATUS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              {errors.status && (
-                <p className="mt-1 text-xs text-red-600">{errors.status.message}</p>
+              />
+              {errors.matchDate && (
+                <p className="mt-1 text-xs text-red-600">{errors.matchDate.message}</p>
               )}
             </div>
           </div>
@@ -313,54 +278,41 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
           </div>
 
           <div>
-            <label htmlFor="summary" className="mb-1 block text-sm font-medium text-gray-700">
-              Résumé
+            <label htmlFor="content" className="mb-1 block text-sm font-medium text-gray-700">
+              Observations générales
             </label>
             <textarea
-              id="summary"
-              rows={4}
-              {...register("summary")}
+              id="content"
+              rows={6}
+              {...register("content")}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="Synthétisez les points clés de la prestation."
+              placeholder="Décrivez le contexte du match, l'attitude du joueur, ses points marquants…"
             />
-            {errors.summary && (
-              <p className="mt-1 text-xs text-red-600">{errors.summary.message}</p>
+            {errors.content && (
+              <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>
             )}
           </div>
 
-          <div>
-            <h2 className="mb-2 text-sm font-semibold text-gray-800">Notes par critère</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {REPORT_CRITERIA.map((criterion) => {
-                const fieldName = `notes.${criterion.key}` as const;
-                const fieldError = errors.notes?.[criterion.key];
-                return (
-                  <div key={criterion.key}>
-                    <label
-                      htmlFor={fieldName}
-                      className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-600"
-                    >
-                      {criterion.label}
-                    </label>
-                    <input
-                      id={fieldName}
-                      type="number"
-                      step="0.5"
-                      min={0}
-                      max={10}
-                      {...register(fieldName)}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-                    {fieldError && (
-                      <p className="mt-1 text-xs text-red-600">{fieldError.message}</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="rating" className="mb-1 block text-sm font-medium text-gray-700">
+                Note globale (0 à 10)
+              </label>
+              <input
+                id="rating"
+                type="number"
+                min={0}
+                max={10}
+                step={1}
+                {...register("rating")}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Ex : 7"
+              />
+              {errors.rating && (
+                <p className="mt-1 text-xs text-red-600">{errors.rating.message}</p>
+              )}
+            </div>
+
             <div>
               <label htmlFor="recommendation" className="mb-1 block text-sm font-medium text-gray-700">
                 Recommandation
@@ -381,42 +333,40 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                 <p className="mt-1 text-xs text-red-600">{errors.recommendation.message}</p>
               )}
             </div>
-
-            <div>
-              <label htmlFor="analysis" className="mb-1 block text-sm font-medium text-gray-700">
-                Observations détaillées
-              </label>
-              <textarea
-                id="analysis"
-                rows={4}
-                {...register("analysis")}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                placeholder="Ajoutez des éléments spécifiques : attitude, contexte, axes de progression…"
-              />
-              {errors.analysis && (
-                <p className="mt-1 text-xs text-red-600">{errors.analysis.message}</p>
-              )}
-            </div>
           </div>
 
-          <div>
-            <label htmlFor="attachments" className="mb-1 block text-sm font-medium text-gray-700">
-              Pièces jointes (optionnel)
-            </label>
-            <input
-              id="attachments"
-              type="file"
-              multiple
-              onChange={handleAttachmentsChange}
-              className="w-full text-sm text-gray-600 file:mr-4 file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-primary/90"
-            />
-            {attachments.length > 0 && (
-              <ul className="mt-2 space-y-1 text-xs text-gray-600">
-                {attachments.map((file) => (
-                  <li key={file.name + file.size}>{file.name}</li>
-                ))}
-              </ul>
-            )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="strengths" className="mb-1 block text-sm font-medium text-gray-700">
+                Points forts
+              </label>
+              <textarea
+                id="strengths"
+                rows={4}
+                {...register("strengths")}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Ex : vision du jeu, qualité de passe…"
+              />
+              {errors.strengths && (
+                <p className="mt-1 text-xs text-red-600">{errors.strengths.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="weaknesses" className="mb-1 block text-sm font-medium text-gray-700">
+                Axes d'amélioration
+              </label>
+              <textarea
+                id="weaknesses"
+                rows={4}
+                {...register("weaknesses")}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                placeholder="Ex : intensité défensive, concentration…"
+              />
+              {errors.weaknesses && (
+                <p className="mt-1 text-xs text-red-600">{errors.weaknesses.message}</p>
+              )}
+            </div>
           </div>
 
           {submitError && (
@@ -433,13 +383,13 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                 reset({
                   playerId: initialPlayerId,
                   title: "",
-                  summary: "",
-                  notes: buildEmptyNotes(),
+                  content: "",
+                  rating: "",
+                  strengths: "",
+                  weaknesses: "",
                   recommendation: "",
-                  status: "draft",
-                  analysis: "",
+                  matchDate: "",
                 });
-                setAttachments([]);
               }}
             >
               Réinitialiser
