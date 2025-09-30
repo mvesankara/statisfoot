@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 type PlayerOption = {
   id: string;
-  name: string;
-  position: string;
+  displayName: string;
+  primaryPosition?: string | null;
 };
 
 interface NewReportFormProps {
@@ -85,7 +85,10 @@ export function NewReportForm({ players }: NewReportFormProps) {
           >
             {players.map((player) => (
               <option key={player.id} value={player.id}>
-                {player.name} · {player.position.toLowerCase()}
+                {player.displayName}
+                {player.primaryPosition
+                  ? ` · ${player.primaryPosition.toLowerCase()}`
+                  : ""}
               </option>
             ))}
           </select>
