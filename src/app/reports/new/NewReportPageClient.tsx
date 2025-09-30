@@ -10,7 +10,7 @@ import { RECOMMENDATIONS, reportSchema, submitReport, type ReportFormValues } fr
 type PlayerOption = {
   id: string;
   label: string;
-  position?: string;
+  primaryPosition?: string | null;
 };
 
 type ToastState = {
@@ -19,24 +19,39 @@ type ToastState = {
 };
 
 type NewReportPageClientProps = {
-  initialPlayers: { id: string; name: string | null; position: string | null }[];
+  initialPlayers: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    primaryPosition: string | null;
+  }[];
 };
 
 function formatPlayerLabel(player: any): string {
-  if (player?.name) return player.name;
-  const parts = [player?.firstname, player?.lastname].filter(Boolean);
-  if (parts.length > 0) return parts.join(" ");
-  if (player?.firstName || player?.lastName) {
-    return [player?.firstName, player?.lastName].filter(Boolean).join(" ");
+  const parts = [player?.firstName, player?.lastName].filter((value) => {
+    return typeof value === "string" && value.trim().length > 0;
+  });
+
+  if (parts.length > 0) {
+    return parts.join(" ");
   }
-  return player?.id ?? "Joueur";
+
+  if (typeof player?.name === "string" && player.name.trim().length > 0) {
+    return player.name;
+  }
+
+  if (typeof player?.id === "string" && player.id.trim().length > 0) {
+    return player.id;
+  }
+
+  return "Joueur";
 }
 
 function mapPlayersToOptions(payload: any[]): PlayerOption[] {
   return payload.map((player: any) => ({
     id: player.id,
     label: formatPlayerLabel(player),
-    position: player.position ?? player.role ?? undefined,
+    primaryPosition: player.primaryPosition ?? player.position ?? player.role ?? undefined,
   }));
 }
 
@@ -221,7 +236,9 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                 {players.map((player) => (
                   <option key={player.id} value={player.id}>
                     {player.label}
-                    {player.position ? ` · ${player.position}` : ""}
+                    {player.primaryPosition
+                      ? ` · ${player.primaryPosition.toLowerCase()}`
+                      : ""}
                   </option>
                 ))}
               </select>

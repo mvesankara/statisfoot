@@ -15,8 +15,16 @@ export default async function NewReportPage() {
   }
 
   const players = await prisma.player.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, position: true },
+    orderBy: [
+      { lastName: "asc" },
+      { firstName: "asc" },
+    ],
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      primaryPosition: true,
+    },
   });
 
   return <NewReportPageClient initialPlayers={players} />;
