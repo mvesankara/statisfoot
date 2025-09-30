@@ -16,14 +16,10 @@ export default async function NewReportPage() {
   }
 
   const players = await prisma.player.findMany({
-
-    orderBy: { lastName: "asc" },
-
     orderBy: [
       { lastName: "asc" },
       { firstName: "asc" },
     ],
-
     select: {
       id: true,
       firstName: true,
