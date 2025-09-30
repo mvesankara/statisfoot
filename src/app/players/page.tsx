@@ -4,6 +4,7 @@ import type { Role } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
 import { hasPermission, PERMISSIONS, ROLES } from "@/lib/rbac";
 
 import CreatePlayerForm from "./CreatePlayerForm";
@@ -97,12 +98,14 @@ export default async function PlayersPage() {
                     href={`/players/${player.id}`}
                     className="hover:text-accent"
                   >
-                    {player.name}
+                    {formatPlayerName(player.firstName, player.lastName)}
                   </Link>
                   <span className="block text-xs text-slate-400">ID {player.id}</span>
                 </th>
                 <td className="px-6 py-4 capitalize">
-                  {player.position.toLowerCase()}
+                  {player.primaryPosition
+                    ? formatPrimaryPosition(player.primaryPosition)
+                    : "—"}
                 </td>
                 <td className="px-6 py-4 text-sm">{player._count.reports}</td>
                 <td className="px-6 py-4 text-sm">

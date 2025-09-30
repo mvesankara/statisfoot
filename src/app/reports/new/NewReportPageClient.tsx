@@ -5,6 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  formatPlayerName,
+  formatPrimaryPosition,
+} from "@/lib/players";
 import { RECOMMENDATIONS, reportSchema, submitReport, type ReportFormValues } from "./form-utils";
 
 type PlayerOption = {
@@ -18,7 +22,29 @@ type ToastState = {
   message: string;
 };
 
+type PlayerListItem = {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  primaryPosition: string | null;
+  fullName?: string | null;
+};
+
 type NewReportPageClientProps = {
+
+  initialPlayers: PlayerListItem[];
+};
+
+function formatPlayerLabel(player: {
+  id?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  fullName?: string | null;
+}): string {
+  if (player?.fullName) return player.fullName;
+  const label = formatPlayerName(player?.firstName, player?.lastName);
+  return label.length > 0 ? label : player?.id ?? "Joueur";
+
   initialPlayers: {
     id: string;
     firstName: string | null;
@@ -45,13 +71,18 @@ function formatPlayerLabel(player: any): string {
   }
 
   return "Joueur";
+
 }
 
-function mapPlayersToOptions(payload: any[]): PlayerOption[] {
-  return payload.map((player: any) => ({
+function mapPlayersToOptions(payload: PlayerListItem[]): PlayerOption[] {
+  return payload.map((player) => ({
     id: player.id,
     label: formatPlayerLabel(player),
+
+    primaryPosition: player.primaryPosition,
+
     primaryPosition: player.primaryPosition ?? player.position ?? player.role ?? undefined,
+
   }));
 }
 
@@ -117,11 +148,11 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
       if (!response.ok) {
         throw new Error("Erreur réseau");
       }
-      const payload = await response.json();
+      const payload = (await response.json()) as unknown;
       if (!Array.isArray(payload)) {
         throw new Error("Réponse inattendue");
       }
-      const nextPlayers = mapPlayersToOptions(payload);
+      const nextPlayers = mapPlayersToOptions(payload as PlayerListItem[]);
       if (isMounted.current) {
         setPlayers(nextPlayers);
       }
@@ -237,7 +268,11 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                   <option key={player.id} value={player.id}>
                     {player.label}
                     {player.primaryPosition
+
+                      ? ` · ${formatPrimaryPosition(player.primaryPosition)} (${player.primaryPosition})`
+
                       ? ` · ${player.primaryPosition.toLowerCase()}`
+
                       : ""}
                   </option>
                 ))}
