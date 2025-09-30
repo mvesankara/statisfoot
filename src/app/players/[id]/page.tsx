@@ -206,7 +206,7 @@ export default async function PlayerProfile({
           </div>
         ) : (
           <div className="rounded-2xl border border-dashed border-white/20 bg-slate-900/40 p-6 text-sm text-slate-300">
-            Aucun rapport n'a encore été rédigé pour ce joueur.
+            Aucun rapport n’a encore été rédigé pour ce joueur.
             {canCreateReport && (
               <>
                 {" "}

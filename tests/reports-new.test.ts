@@ -2,6 +2,7 @@ import {
   buildReportPayload,
   reportSchema,
   submitReport,
+  type FetchLike,
   type ReportFormValues,
 } from "../src/app/reports/new/form-utils.js";
 import { assert, runTests, type TestCase } from "./test-helpers.js";
@@ -20,8 +21,8 @@ function createValidValues(): ReportFormValues {
 }
 
 function createFetchMock(responses: Array<{ ok: boolean; body?: unknown }>) {
-  const calls: any[] = [];
-  const mock = async (...args: any[]) => {
+  const calls: Array<Parameters<FetchLike>> = [];
+  const mock: FetchLike = async (...args) => {
     calls.push(args);
     const response = responses.shift() ?? { ok: true };
     return {
@@ -72,11 +73,13 @@ const tests: TestCase[] = [
     run: async () => {
       const { mock, calls } = createFetchMock([{ ok: true }]);
       const values = createValidValues();
-      const payload = await submitReport(values, mock as unknown as typeof fetch);
+      const payload = await submitReport(values, mock);
       assert.equal(calls.length, 1);
       const [, options] = calls[0];
-      assert.equal(options.method, "POST");
-      const body = JSON.parse(options.body);
+      const requestInit = options ?? {};
+      assert.equal(requestInit.method, "POST");
+      assert.ok(requestInit.body);
+      const body = JSON.parse(String(requestInit.body));
       assert.deepEqual(body, payload);
     },
   },
@@ -85,7 +88,7 @@ const tests: TestCase[] = [
     run: async () => {
       const { mock } = createFetchMock([{ ok: false, body: { error: "Erreur" } }]);
       const values = createValidValues();
-      await assert.rejects(() => submitReport(values, mock as unknown as typeof fetch), /Erreur/);
+      await assert.rejects(() => submitReport(values, mock), /Erreur/);
     },
   },
 ];

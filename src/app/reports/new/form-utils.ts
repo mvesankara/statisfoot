@@ -1,5 +1,11 @@
 import { z, infer as inferType } from "../../../lib/zod";
 
+type FetchResponse = Pick<Response, "ok" | "json">;
+export type FetchLike = (
+  input: RequestInfo | URL,
+  init?: RequestInit
+) => Promise<FetchResponse>;
+
 export const RECOMMENDATIONS = [
   { value: "sign", label: "Recommander la signature" },
   { value: "monitor", label: "Surveiller régulièrement" },
@@ -76,7 +82,10 @@ export function buildReportPayload(values: ReportFormValues) {
   };
 }
 
-export async function submitReport(values: ReportFormValues, fetchImpl: typeof fetch = fetch) {
+export async function submitReport(
+  values: ReportFormValues,
+  fetchImpl: FetchLike = fetch
+) {
   const payload = buildReportPayload(values);
   const response = await fetchImpl("/api/reports", {
     method: "POST",

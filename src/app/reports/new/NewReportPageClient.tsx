@@ -124,7 +124,7 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
       if (isMounted.current) {
         setPlayers(nextPlayers);
       }
-    } catch (error) {
+    } catch {
       if (isMounted.current) {
         setPlayersError("Impossible de charger la liste des joueurs.");
         setPlayers(initialPlayerOptions);
@@ -302,7 +302,7 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
               rows={6}
               {...register("content")}
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              placeholder="Décrivez le contexte du match, l'attitude du joueur, ses points marquants…"
+                placeholder="Décrivez le contexte du match, l’attitude du joueur, ses points marquants…"
             />
             {errors.content && (
               <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>
@@ -370,7 +370,7 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
 
             <div>
               <label htmlFor="weaknesses" className="mb-1 block text-sm font-medium text-gray-700">
-                Axes d'amélioration
+                Axes d’amélioration
               </label>
               <textarea
                 id="weaknesses"

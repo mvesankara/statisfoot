@@ -30,7 +30,10 @@ function loadWithAuth(): WithAuthFn {
       return moduleExports.withAuth;
     }
   } catch (error) {
-    console.warn("next-auth/middleware introuvable, utilisation d'un stub pour les tests.");
+    console.warn(
+      "next-auth/middleware introuvable, utilisation d'un stub pour les tests.",
+      error
+    );
   }
 
   return ((config: WithAuthConfig) => config) as WithAuthFn;

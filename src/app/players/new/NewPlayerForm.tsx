@@ -81,7 +81,7 @@ export function NewPlayerForm() {
         primaryPosition: "" as unknown as CreatePlayerInput["primaryPosition"],
       });
       router.refresh();
-    } catch (error) {
+    } catch {
       setFeedback({
         type: "error",
         message: "Une erreur inattendue est survenue lors de l'enregistrement.",
