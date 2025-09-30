@@ -6,6 +6,7 @@ export type DashboardReport = {
   id: string;
   status: string;
   createdAt: Date;
+  matchDate: Date | null;
   content: string;
   player: {
     id: string;
@@ -101,6 +102,9 @@ export function MyReports({ reports }: MyReportsProps) {
                   Extrait
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  Match
+                </th>
+                <th scope="col" className="px-6 py-3">
                   Date
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -135,6 +139,9 @@ export function MyReports({ reports }: MyReportsProps) {
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-400">
                     {formatExcerpt(report.content)}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {report.matchDate ? dateFormatter.format(report.matchDate) : "—"}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {dateFormatter.format(report.createdAt)}

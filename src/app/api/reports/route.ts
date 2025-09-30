@@ -188,8 +188,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { playerId, title, content, rating, strengths, weaknesses, recommendation } =
-    validationResult.data;
+  const {
+    playerId,
+    title,
+    content,
+    rating,
+    strengths,
+    weaknesses,
+    recommendation,
+    matchDate,
+  } = validationResult.data;
 
   try {
     const player = await prisma.player.findUnique({
@@ -210,6 +218,7 @@ export async function POST(req: NextRequest) {
         weaknesses: weaknesses ?? undefined,
         potential: recommendation ?? undefined,
         overall: rating ?? undefined,
+        matchDate: matchDate ?? undefined,
       },
       include: {
         player: { select: PLAYER_SELECT },

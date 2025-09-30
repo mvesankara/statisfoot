@@ -11,13 +11,14 @@ import Editor from "./Editor";
  
    if (!report) return <p>Report not found</p>;
  
-   return (
-     <div className="p-8">
-       <h1 className="text-2xl font-bold">{report.title}</h1>
-       <p>{report.content}</p>
-       <p>Status: {report.status}</p>
-       <p>Player: {report.player.firstName} {report.player.lastName}</p>
-       <p>Author: {report.author.name}</p>
+  return (
+    <div className="p-8">
+      <h1 className="text-2xl font-bold">{report.title}</h1>
+      <p>{report.content}</p>
+      <p>Status: {report.status}</p>
+      <p>Match observé: {report.matchDate ? report.matchDate.toISOString() : "—"}</p>
+      <p>Player: {report.player.firstName} {report.player.lastName}</p>
+      <p>Author: {report.author.name}</p>
       <Editor
         id={report.id}
         initialTitle={report.title}

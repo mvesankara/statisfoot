@@ -69,6 +69,9 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
   const playerPositionLabel = report.player.primaryPosition
     ? formatPrimaryPosition(report.player.primaryPosition)
     : "—";
+  const matchDateLabel = report.matchDate
+    ? dateFormatter.format(report.matchDate)
+    : "—";
 
   return (
     <div className="space-y-8">
@@ -111,6 +114,10 @@ export default async function ReportDetailPage({ params }: ReportPageProps) {
               <div className="flex justify-between">
                 <dt>Statut</dt>
                 <dd className="capitalize">{report.status.toLowerCase()}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Match observé</dt>
+                <dd>{matchDateLabel}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Créé le</dt>

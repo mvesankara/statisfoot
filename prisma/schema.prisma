@@ -327,6 +327,7 @@ model Report {
   authorId    String
   playerId    String
   matchId     String?
+  matchDate   DateTime?
   visibility  Visibility          @default(PRIVATE)
   status      ReportStatus        @default(DRAFT)
   title       String?
