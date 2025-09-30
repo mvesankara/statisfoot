@@ -44,45 +44,13 @@ function formatPlayerLabel(player: {
   if (player?.fullName) return player.fullName;
   const label = formatPlayerName(player?.firstName, player?.lastName);
   return label.length > 0 ? label : player?.id ?? "Joueur";
-
-  initialPlayers: {
-    id: string;
-    firstName: string | null;
-    lastName: string | null;
-    primaryPosition: string | null;
-  }[];
-};
-
-function formatPlayerLabel(player: any): string {
-  const parts = [player?.firstName, player?.lastName].filter((value) => {
-    return typeof value === "string" && value.trim().length > 0;
-  });
-
-  if (parts.length > 0) {
-    return parts.join(" ");
-  }
-
-  if (typeof player?.name === "string" && player.name.trim().length > 0) {
-    return player.name;
-  }
-
-  if (typeof player?.id === "string" && player.id.trim().length > 0) {
-    return player.id;
-  }
-
-  return "Joueur";
-
 }
 
 function mapPlayersToOptions(payload: PlayerListItem[]): PlayerOption[] {
   return payload.map((player) => ({
     id: player.id,
     label: formatPlayerLabel(player),
-
     primaryPosition: player.primaryPosition,
-
-    primaryPosition: player.primaryPosition ?? player.position ?? player.role ?? undefined,
-
   }));
 }
 
@@ -268,11 +236,7 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                   <option key={player.id} value={player.id}>
                     {player.label}
                     {player.primaryPosition
-
                       ? ` · ${formatPrimaryPosition(player.primaryPosition)} (${player.primaryPosition})`
-
-                      ? ` · ${player.primaryPosition.toLowerCase()}`
-
                       : ""}
                   </option>
                 ))}
