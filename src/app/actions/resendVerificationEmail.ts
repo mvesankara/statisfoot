@@ -28,6 +28,11 @@ export async function resendVerificationEmail() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      emailVerified: true,
+    },
   });
 
   if (!user) {

@@ -26,13 +26,15 @@ export default async function RootLayout({
  }: Readonly<{
    children: React.ReactNode;
  }>) {
-   const session = await auth();
+  const session = await auth();
+  const shouldDisplayVerificationBanner =
+    !!session?.user && !session.user.emailVerified;
 
    return (
      <html lang="fr">
        <body className={`${inter.className} antialiased`}>
          <Providers>
-           {session && !session.user?.emailVerified && <EmailVerificationBanner />}
+          {shouldDisplayVerificationBanner && <EmailVerificationBanner />}
            {children}
          </Providers>
        </body>

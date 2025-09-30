@@ -67,6 +67,34 @@ model Organization {
 }
 
 model User {
+
+  id             String          @id @default(cuid())
+  email          String          @unique
+  username       String          @unique
+  hashedPass     String
+  displayName    String
+  avatarUrl      String?
+  orgId          String?
+  emailVerified  DateTime?
+  emailVerificationToken String? @unique
+  organization   Organization?   @relation(fields: [orgId], references: [id])
+  roles          UserRole[]
+  bio            String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  disabledAt     DateTime?
+  comments       Comment[]
+  reactions      Reaction[]
+  follows        Follow[]        @relation("user_follows")
+  followers      Follow[]        @relation("user_followers")
+  notifications  Notification[]
+  reports        Report[]        @relation("report_author")
+  auditLogs      AuditLog[]      @relation("audit_logs")
+  addedTags      PlayerTag[]     @relation("player_tags")
+  reviews        ReportReview[]  @relation("report_reviews")
+  mediaAssets    MediaAsset[]    @relation("media_assets")
+  reportVersions ReportVersion[] @relation("report_versions")
+
   id                String                  @id @default(cuid())
   email             String                  @unique
   username          String                  @unique
@@ -93,6 +121,7 @@ model User {
   reviews           ReportReview[]          @relation("report_reviews")
   mediaAssets       MediaAsset[]            @relation("media_assets")
   reportVersions    ReportVersion[]         @relation("report_versions")
+
 
   @@index([orgId])
 }
