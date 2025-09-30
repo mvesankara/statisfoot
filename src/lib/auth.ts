@@ -1,34 +1,36 @@
-import NextAuth, { getServerSession, type DefaultSession, type NextAuthOptions } from "next-auth";
+import NextAuth, {
+  getServerSession,
+  type DefaultSession,
+  type NextAuthOptions,
+} from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import { compare } from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import type { UserRoleEnum } from "@prisma/client";
 
 // Augmentations de types
 declare module "next-auth" {
   interface Session {
     user?: DefaultSession["user"] & {
       id: string;
-      role?: string;
-      firstname?: string | null;
-      lastname?: string | null;
-      emailVerified?: Date | null;
+      role?: UserRoleEnum | null;
+      displayName?: string;
+      username?: string;
     };
   }
   interface User {
-    role?: string;
-    firstname?: string | null;
-    lastname?: string | null;
-    emailVerified?: Date | null;
+    role?: UserRoleEnum | null;
+    displayName?: string;
+    username?: string;
   }
 }
 declare module "next-auth/jwt" {
   interface JWT {
     userId?: string;
-    role?: string;
-    firstname?: string | null;
-    lastname?: string | null;
-    emailVerified?: Date | null;
+    role?: UserRoleEnum | null;
+    displayName?: string;
+    username?: string;
   }
 }
 
@@ -51,20 +53,22 @@ export const authOptions: NextAuthOptions = {
       async authorize(creds) {
         if (!creds?.email || !creds?.password) return null;
         const email = creds.email.toLowerCase().trim();
-        const user = await prisma.user.findUnique({ where: { email } });
-        if (!user?.password) return null;
-        const ok = await compare(creds.password, user.password);
+        const user = await prisma.user.findUnique({
+          where: { email },
+          include: { roles: { include: { role: true } } },
+        });
+        if (!user?.hashedPass) return null;
+        const ok = await compare(creds.password, user.hashedPass);
         if (!ok) return null;
+        const primaryRole = user.roles[0]?.role?.name ?? null;
         return {
           id: user.id,
-          name:
-            user.name ??
-            `${user.firstname ?? ""} ${user.lastname ?? ""}`.trim(),
+          name: user.displayName,
           email: user.email,
-          role: user.role,
-          firstname: user.firstname ?? null,
-          lastname: user.lastname ?? null,
-          emailVerified: user.emailVerified ?? null,
+          image: user.avatarUrl ?? null,
+          role: primaryRole,
+          displayName: user.displayName,
+          username: user.username,
         };
       },
     }),
@@ -75,22 +79,19 @@ export const authOptions: NextAuthOptions = {
         const {
           id,
           role,
-          firstname,
-          lastname,
-          emailVerified,
+          displayName,
+          username,
         } = user as {
           id?: string;
-          role?: string;
-          firstname?: string | null;
-          lastname?: string | null;
-          emailVerified?: Date | null;
+          role?: UserRoleEnum | null;
+          displayName?: string;
+          username?: string;
         };
 
         token.userId = id;
-        token.role = role;
-        token.firstname = firstname ?? null;
-        token.lastname = lastname ?? null;
-        token.emailVerified = emailVerified ?? null;
+        token.role = role ?? null;
+        token.displayName = displayName;
+        token.username = username;
       }
       return token;
     },
@@ -98,17 +99,18 @@ export const authOptions: NextAuthOptions = {
       if (!session.user) {
         session.user = {
           id: token.userId ?? "",
-          role: token.role ?? undefined,
-          firstname: token.firstname ?? null,
-          lastname: token.lastname ?? null,
-          emailVerified: token.emailVerified ?? null,
+          role: token.role ?? null,
+          displayName: token.displayName,
+          username: token.username,
         } as NonNullable<typeof session.user>;
       } else {
         session.user.id = token.userId ?? "";
-        session.user.role = token.role ?? undefined;
-        session.user.firstname = token.firstname ?? null;
-        session.user.lastname = token.lastname ?? null;
-        session.user.emailVerified = token.emailVerified ?? null;
+        session.user.role = token.role ?? null;
+        session.user.displayName = token.displayName;
+        session.user.username = token.username;
+      }
+      if (session.user) {
+        session.user.name = token.displayName ?? session.user.name;
       }
       return session;
     },
