@@ -3,17 +3,19 @@
  * @description Ce fichier définit les rôles, les permissions, et la relation entre eux (grants).
  * Il fournit également une fonction pour vérifier si un rôle possède une permission spécifique.
  */
-import { UserRoleEnum } from "@prisma/client";
+import type { Role as PrismaRole } from "@prisma/client";
+
+const ROLE_VALUES = ["SCOUT", "RECRUITER", "AGENT", "ADMIN"] as const satisfies readonly PrismaRole[];
 
 /**
  * @const {object} ROLES
  * @description Énumération des rôles disponibles dans l'application.
  */
 export const ROLES = {
-  SCOUT: UserRoleEnum.SCOUT,
-  RECRUITER: UserRoleEnum.RECRUITER,
-  AGENT: UserRoleEnum.AGENT,
-  ADMIN: UserRoleEnum.ADMIN,
+  SCOUT: ROLE_VALUES[0],
+  RECRUITER: ROLE_VALUES[1],
+  AGENT: ROLE_VALUES[2],
+  ADMIN: ROLE_VALUES[3],
 } as const;
 
 export type AppRole = (typeof ROLES)[keyof typeof ROLES];
