@@ -4,6 +4,10 @@ ALTER TABLE "public"."User"
   ADD COLUMN IF NOT EXISTS "emailVerificationToken" TEXT;
 
 -- Ensure unique index exists for email verification tokens
+
+CREATE UNIQUE INDEX IF NOT EXISTS "User_emailVerificationToken_key"
+  ON "public"."User" ("emailVerificationToken");
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -16,3 +20,4 @@ BEGIN
       ON "public"."User" ("emailVerificationToken");
   END IF;
 END $$;
+
