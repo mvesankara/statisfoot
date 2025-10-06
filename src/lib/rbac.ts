@@ -66,3 +66,7 @@ export const GRANTS: Record<AppRole, (keyof typeof PERMISSIONS)[]> = {
 export function hasPermission(role: AppRole, permission: keyof typeof PERMISSIONS) {
   return GRANTS[role]?.includes(permission) ?? false;
 }
+
+export function hasAnyPermission(role: AppRole, permissions: (keyof typeof PERMISSIONS)[]) {
+  return permissions.some((permission) => hasPermission(role, permission));
+}
