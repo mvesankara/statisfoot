@@ -39,9 +39,20 @@ export const assert = {
   },
 };
 
+type ProcessLike = { exitCode?: number };
+
 function setExitCode(code: number) {
-  if (typeof globalThis !== "undefined" && (globalThis as any).process) {
-    (globalThis as any).process.exitCode = code;
+  if (typeof globalThis !== "object" || globalThis === null) {
+    return;
+  }
+
+  if (!("process" in globalThis)) {
+    return;
+  }
+
+  const processRef = (globalThis as { process?: ProcessLike }).process;
+  if (processRef) {
+    processRef.exitCode = code;
   }
 }
 

@@ -10,15 +10,17 @@ function buildErrors(issues: { path: (string | number)[]; message: string }[]): 
   return result;
 }
 
-export function zodResolver<TValues>(schema: ZodType<TValues>): Resolver<TValues> {
-  return async (values: any) => {
+export function zodResolver<TValues extends Record<string, unknown>>(
+  schema: ZodType<TValues>
+): Resolver<TValues> {
+  return async (values: TValues) => {
     const parsed = schema.safeParse(values);
     if (parsed.success) {
       return { values: parsed.data, errors: {} };
     }
 
     return {
-      values: values as TValues,
+      values,
       errors: buildErrors(parsed.error.issues),
     };
   };

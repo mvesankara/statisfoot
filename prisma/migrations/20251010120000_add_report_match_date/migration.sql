@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Report"
+ADD COLUMN IF NOT EXISTS "matchDate" TIMESTAMP(3);

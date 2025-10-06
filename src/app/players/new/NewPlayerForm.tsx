@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -8,7 +8,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
+  POSITION_GROUP_VALUES,
   createPlayerSchema,
+  formatPrimaryPosition,
   normalizePlayerInput,
   type CreatePlayerInput,
 } from "@/lib/players";
@@ -19,26 +21,11 @@ type FeedbackState =
 
 type ServerFieldErrors = Record<string, string[]>;
 
-const positionPlaceholders = [
-  "Gardien de but",
-  "Défenseur central",
-  "Latéral gauche",
-  "Milieu défensif",
-  "Ailier droit",
-  "Attaquant de pointe",
-];
-
-function pickPlaceholder(index: number) {
-  return positionPlaceholders[index % positionPlaceholders.length] ?? "Poste principal";
-}
-
 export function NewPlayerForm() {
   const router = useRouter();
   const [feedback, setFeedback] = useState<FeedbackState>(null);
   const [serverFieldErrors, setServerFieldErrors] = useState<ServerFieldErrors | null>(null);
   const [createdPlayerId, setCreatedPlayerId] = useState<string | null>(null);
-
-  const placeholder = useMemo(() => pickPlaceholder(Date.now()), []);
 
   const {
     register,
@@ -47,7 +34,11 @@ export function NewPlayerForm() {
     reset,
   } = useForm<CreatePlayerInput>({
     resolver: zodResolver(createPlayerSchema),
-    defaultValues: { name: "", position: "" },
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      primaryPosition: "" as unknown as CreatePlayerInput["primaryPosition"],
+    },
   });
 
   const onSubmit = async (values: CreatePlayerInput) => {
@@ -77,12 +68,20 @@ export function NewPlayerForm() {
         return;
       }
 
-      const player = (await response.json()) as { id: string; name: string };
+      const player = (await response.json()) as {
+        id: string;
+        firstName: string | null;
+        lastName: string | null;
+      };
       setFeedback({ type: "success", message: "Le joueur a été ajouté avec succès." });
       setCreatedPlayerId(player.id);
-      reset({ name: "", position: "" });
+      reset({
+        firstName: "",
+        lastName: "",
+        primaryPosition: "" as unknown as CreatePlayerInput["primaryPosition"],
+      });
       router.refresh();
-    } catch (error) {
+    } catch {
       setFeedback({
         type: "error",
         message: "Une erreur inattendue est survenue lors de l'enregistrement.",
@@ -90,40 +89,61 @@ export function NewPlayerForm() {
     }
   };
 
-  const nameError = errors.name?.message;
-  const positionError = errors.position?.message;
+  const firstNameError = errors.firstName?.message;
+  const lastNameError = errors.lastName?.message;
+  const primaryPositionError = errors.primaryPosition?.message;
 
-  const serverNameError = serverFieldErrors?.name?.[0];
-  const serverPositionError = serverFieldErrors?.position?.[0];
+  const serverFirstNameError = serverFieldErrors?.firstName?.[0];
+  const serverLastNameError = serverFieldErrors?.lastName?.[0];
+  const serverPrimaryPositionError = serverFieldErrors?.primaryPosition?.[0];
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-6 rounded-2xl bg-slate-900/50 p-8 shadow-lg ring-1 ring-white/10"
     >
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <label className="flex flex-col gap-2 text-sm text-slate-200">
-          Nom complet du joueur
+          Prénom
           <input
-            {...register("name")}
+            {...register("firstName")}
             type="text"
-            placeholder="Ex. Enzo Leclerc"
+            placeholder="Ex. Enzo"
             className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
           />
-          {(nameError || serverNameError) && (
-            <span className="text-xs text-rose-300">{nameError || serverNameError}</span>
+          {(firstNameError || serverFirstNameError) && (
+            <span className="text-xs text-rose-300">{firstNameError || serverFirstNameError}</span>
+          )}
+        </label>
+        <label className="flex flex-col gap-2 text-sm text-slate-200">
+          Nom
+          <input
+            {...register("lastName")}
+            type="text"
+            placeholder="Ex. Leclerc"
+            className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+          />
+          {(lastNameError || serverLastNameError) && (
+            <span className="text-xs text-rose-300">{lastNameError || serverLastNameError}</span>
           )}
         </label>
         <label className="flex flex-col gap-2 text-sm text-slate-200">
           Poste principal
-          <input
-            {...register("position")}
-            type="text"
-            placeholder={placeholder}
-            className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
-          />
-          {(positionError || serverPositionError) && (
-            <span className="text-xs text-rose-300">{positionError || serverPositionError}</span>
+          <select
+            {...register("primaryPosition")}
+            className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="">Sélectionnez un poste</option>
+            {POSITION_GROUP_VALUES.map((value) => (
+              <option key={value} value={value}>
+                {formatPrimaryPosition(value)} ({value})
+              </option>
+            ))}
+          </select>
+          {(primaryPositionError || serverPrimaryPositionError) && (
+            <span className="text-xs text-rose-300">
+              {primaryPositionError || serverPrimaryPositionError}
+            </span>
           )}
         </label>
       </div>
@@ -168,7 +188,11 @@ export function NewPlayerForm() {
         <button
           type="button"
           onClick={() => {
-            reset({ name: "", position: "" });
+            reset({
+              firstName: "",
+              lastName: "",
+              primaryPosition: "" as unknown as CreatePlayerInput["primaryPosition"],
+            });
             setServerFieldErrors(null);
             setFeedback(null);
             setCreatedPlayerId(null);

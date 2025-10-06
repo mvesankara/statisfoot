@@ -1,14 +1,18 @@
 import Link from "next/link";
 
+import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
+
 export type DashboardReport = {
   id: string;
   status: string;
   createdAt: Date;
+  matchDate: Date | null;
   content: string;
   player: {
     id: string;
-    name: string;
-    position: string;
+    firstName: string | null;
+    lastName: string | null;
+    primaryPosition: string | null;
   };
 };
 
@@ -98,6 +102,9 @@ export function MyReports({ reports }: MyReportsProps) {
                   Extrait
                 </th>
                 <th scope="col" className="px-6 py-3">
+                  Match
+                </th>
+                <th scope="col" className="px-6 py-3">
                   Date
                 </th>
                 <th scope="col" className="px-6 py-3">
@@ -118,16 +125,23 @@ export function MyReports({ reports }: MyReportsProps) {
                     scope="row"
                     className="px-6 py-4 font-medium text-white"
                   >
-                    <span className="block text-sm">{report.player.name}</span>
+                    <span className="block text-sm">
+                      {formatPlayerName(report.player.firstName, report.player.lastName)}
+                    </span>
                     <span className="text-xs text-slate-400">
                       ID {report.player.id}
                     </span>
                   </th>
                   <td className="px-6 py-4 text-sm capitalize">
-                    {report.player.position.toLowerCase()}
+                    {report.player.primaryPosition
+                      ? formatPrimaryPosition(report.player.primaryPosition)
+                      : "—"}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-400">
                     {formatExcerpt(report.content)}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {report.matchDate ? dateFormatter.format(report.matchDate) : "—"}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     {dateFormatter.format(report.createdAt)}

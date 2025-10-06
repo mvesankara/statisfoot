@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import React, { useMemo, useState } from "react";
 
 /**
@@ -169,7 +170,7 @@ export function ScoutRatingForm({
   const overall = useMemo(() => {
     const entries = Object.entries(scores);
     if (!entries.length) return 0;
-    const sumWeights = entries.reduce((acc, [id, _]) => {
+    const sumWeights = entries.reduce((acc, [id]) => {
       const dim = template.dimensions.find((d) => d.id === Number(id));
       return acc + (dim?.weight_pct ?? 0);
     }, 0);
@@ -200,7 +201,14 @@ export function ScoutRatingForm({
     <div className="mx-auto max-w-5xl space-y-4">
       {/* En-tête joueur */}
       <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-sky-900 to-indigo-900 p-4 text-white shadow">
-        <img src={player.photo_url} alt="player" className="h-16 w-16 rounded-xl object-cover" />
+        <Image
+          src={player.photo_url ?? "/statisfoot-logo.jpeg"}
+          alt={`${player.first_name} ${player.last_name}`}
+          width={64}
+          height={64}
+          className="h-16 w-16 rounded-xl object-cover"
+          priority
+        />
         <div className="flex-1">
           <div className="text-2xl font-bold">
             {player.first_name} {player.last_name}

@@ -8,8 +8,9 @@ import { QuickFavorites } from "@/components/dashboard/QuickFavorites";
 import { ReportRequests } from "@/components/dashboard/ReportRequests";
 import { PlayerFilters } from "@/components/dashboard/PlayerFilters";
 import { LogoutButton } from "@/components/auth/LogoutButton";
+import type { AppRole } from "@/lib/rbac";
 
-type UserRole = "SCOUT" | "RECRUITER" | "AGENT" | "ADMIN";
+type UserRole = AppRole;
 
 const roleLabels: Record<UserRole, string> = {
   SCOUT: "Scout",
@@ -117,12 +118,22 @@ export default async function DashboardPage() {
   const userId = session.user.id;
   const role = (session.user.role ?? "SCOUT") as UserRole;
 
-  const [recentReports, totalReports, playersCount] = await Promise.all([
+  const [recentReportsRaw, totalReports, playersCount] = await Promise.all([
     prisma.report.findMany({
       where: { authorId: userId },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        matchDate: true,
+        summary: true,
         player: {
-          select: { id: true, name: true, position: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            primaryPosition: true,
+          },
         },
       },
       orderBy: { createdAt: "desc" },
@@ -132,10 +143,24 @@ export default async function DashboardPage() {
     prisma.player.count(),
   ]);
 
+  const recentReports: DashboardReport[] = recentReportsRaw.map((report) => ({
+    id: report.id,
+    status: report.status,
+    createdAt: report.createdAt,
+    matchDate: report.matchDate,
+    content: report.summary ?? "",
+    player: {
+      id: report.player.id,
+      firstName: report.player.firstName,
+      lastName: report.player.lastName,
+      primaryPosition: report.player.primaryPosition,
+    },
+  }));
+
   const lastReportDate = recentReports[0]?.createdAt ?? null;
 
   const displayName =
-    [session.user.firstname, session.user.lastname].filter(Boolean).join(" ") ||
+    session.user.displayName ||
     session.user.name ||
     session.user.email ||
     "Utilisateur";

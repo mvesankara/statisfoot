@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -18,7 +19,7 @@ const navItems = [
 export function Sidebar() {
   const { data: session } = useSession();
   const fullName = session?.user
-    ? ([session.user.firstname, session.user.lastname].filter(Boolean).join(" ") ||
+    ? (session.user.displayName ||
         session.user.name ||
         session.user.email ||
         "Mon compte")
@@ -28,9 +29,12 @@ export function Sidebar() {
   return (
     <aside className="w-[280px] bg-dark-start/50 p-6 flex flex-col">
       <div className="flex items-center gap-3 mb-8">
-        <img
+        <Image
           src="/favicon_statisfoot.png"
           alt="Logo Statisfoot"
+          width={36}
+          height={36}
+          priority
           className="h-9 w-auto"
         />
         <span className="font-semibold text-lg tracking-tight text-white">

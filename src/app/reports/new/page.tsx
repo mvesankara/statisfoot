@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { formatPlayerName } from "@/lib/players";
 import { NewReportPageClient } from "./NewReportPageClient";
 
 /**
@@ -15,9 +16,22 @@ export default async function NewReportPage() {
   }
 
   const players = await prisma.player.findMany({
-    orderBy: { name: "asc" },
-    select: { id: true, name: true, position: true },
+    orderBy: [
+      { lastName: "asc" },
+      { firstName: "asc" },
+    ],
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      primaryPosition: true,
+    },
   });
 
-  return <NewReportPageClient initialPlayers={players} />;
+  const payload = players.map((player) => ({
+    ...player,
+    fullName: formatPlayerName(player.firstName, player.lastName),
+  }));
+
+  return <NewReportPageClient initialPlayers={payload} />;
 }

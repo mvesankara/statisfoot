@@ -3,18 +3,22 @@
  * @description Ce fichier définit les rôles, les permissions, et la relation entre eux (grants).
  * Il fournit également une fonction pour vérifier si un rôle possède une permission spécifique.
  */
-import type { Role } from "@prisma/client";
+import type { Role as PrismaRole } from "@prisma/client";
+
+const ROLE_VALUES = ["SCOUT", "RECRUITER", "AGENT", "ADMIN"] as const satisfies readonly PrismaRole[];
 
 /**
  * @const {object} ROLES
  * @description Énumération des rôles disponibles dans l'application.
  */
 export const ROLES = {
-  SCOUT: "SCOUT",
-  RECRUITER: "RECRUITER",
-  AGENT: "AGENT",
-  ADMIN: "ADMIN",
+  SCOUT: ROLE_VALUES[0],
+  RECRUITER: ROLE_VALUES[1],
+  AGENT: ROLE_VALUES[2],
+  ADMIN: ROLE_VALUES[3],
 } as const;
+
+export type AppRole = (typeof ROLES)[keyof typeof ROLES];
 
 /**
  * @const {object} PERMISSIONS
@@ -36,7 +40,7 @@ export const PERMISSIONS = {
  * @const {Record<Role, (keyof typeof PERMISSIONS)[]>} GRANTS
  * @description Mappe chaque rôle à un tableau de permissions qui lui sont accordées.
  */
-export const GRANTS: Record<Role, (keyof typeof PERMISSIONS)[]> = {
+export const GRANTS: Record<AppRole, (keyof typeof PERMISSIONS)[]> = {
   [ROLES.SCOUT]: [PERMISSIONS["players:read"], PERMISSIONS["reports:create"]],
   [ROLES.RECRUITER]: [
     PERMISSIONS["players:read"],
@@ -59,6 +63,6 @@ export const GRANTS: Record<Role, (keyof typeof PERMISSIONS)[]> = {
  * @param {keyof typeof PERMISSIONS} permission - La permission à vérifier.
  * @returns {boolean} `true` si le rôle a la permission, sinon `false`.
  */
-export function hasPermission(role: Role, permission: keyof typeof PERMISSIONS) {
+export function hasPermission(role: AppRole, permission: keyof typeof PERMISSIONS) {
   return GRANTS[role]?.includes(permission) ?? false;
 }

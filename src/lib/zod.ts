@@ -143,7 +143,7 @@ class ZEnum<T extends readonly [string, ...string[]]> extends ZodType<T[number]>
   }
 }
 
-type ZodRawShape = { [key: string]: ZodType<any> };
+type ZodRawShape = { [key: string]: ZodType<unknown> };
 
 class ZObject<Shape extends ZodRawShape> extends ZodType<{ [K in keyof Shape]: Shape[K]["_type"] }> {
   constructor(private readonly shape: Shape) {
@@ -176,4 +176,4 @@ export const z = {
   object: <Shape extends ZodRawShape>(shape: Shape) => new ZObject(shape),
 };
 
-export type infer<T extends ZodType<any>> = T["_type"];
+export type infer<T extends ZodType<unknown>> = T["_type"];

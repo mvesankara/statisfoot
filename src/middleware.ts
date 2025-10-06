@@ -5,8 +5,7 @@
  * pour accéder à une route spécifique en se basant sur son rôle (RBAC).
  */
 import type { WithAuthConfig } from "next-auth/middleware";
-import { hasPermission, PERMISSIONS } from "./lib/rbac";
-import type { Role } from "@prisma/client";
+import { hasPermission, PERMISSIONS, type AppRole } from "./lib/rbac";
 
 type RouteRule = {
   matcher: (path: string) => boolean;
@@ -31,7 +30,10 @@ function loadWithAuth(): WithAuthFn {
       return moduleExports.withAuth;
     }
   } catch (error) {
-    console.warn("next-auth/middleware introuvable, utilisation d'un stub pour les tests.");
+    console.warn(
+      "next-auth/middleware introuvable, utilisation d'un stub pour les tests.",
+      error
+    );
   }
 
   return ((config: WithAuthConfig) => config) as WithAuthFn;
@@ -76,10 +78,14 @@ export function resolveRequiredPermission(path: string) {
   return null;
 }
 
-export function isAuthorized(role: Role, path: string) {
+export function isAuthorized(role: AppRole | null | undefined, path: string) {
   const permission = resolveRequiredPermission(path);
   if (!permission) {
     return true;
+  }
+
+  if (!role) {
+    return false;
   }
 
   return hasPermission(role, permission);
@@ -91,7 +97,7 @@ export default withAuth({
       if (!token) return false;
 
       const path = req.nextUrl.pathname;
-      const role = token.role as Role;
+      const role = token.role as AppRole | null | undefined;
       return isAuthorized(role, path);
     },
   },

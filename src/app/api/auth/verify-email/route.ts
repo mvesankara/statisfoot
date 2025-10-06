@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -9,23 +10,28 @@ export async function GET(request: Request) {
     return new NextResponse("Token manquant", { status: 400 });
   }
 
-  const user = await prisma.user.findFirst({
-    where: {
-      emailVerificationToken: token,
-    },
+  const verification = await prisma.emailVerificationToken.findUnique({
+    where: { token },
   });
 
-  if (!user) {
+  if (!verification) {
     return new NextResponse("Token invalide", { status: 400 });
   }
 
+  if (verification.expiresAt.getTime() < Date.now()) {
+    await prisma.emailVerificationToken.delete({ where: { userId: verification.userId } });
+    return new NextResponse("Token expiré", { status: 400 });
+  }
+
   await prisma.user.update({
-    where: { id: user.id },
+    where: { id: verification.userId },
     data: {
       emailVerified: new Date(),
       emailVerificationToken: null,
     },
   });
+
+  await prisma.emailVerificationToken.delete({ where: { userId: verification.userId } });
 
   return NextResponse.redirect(new URL("/login?verified=true", request.url));
 }

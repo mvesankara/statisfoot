@@ -1,59 +1,35 @@
 "use server";
 
-import type { Role } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission, PERMISSIONS, ROLES } from "@/lib/rbac";
-import { z, infer as inferType } from "@/lib/zod";
+import { hasPermission, PERMISSIONS, ROLES, type AppRole } from "@/lib/rbac";
+import {
+  createPlayerSchema,
+  normalizePlayerInput,
+  type CreatePlayerInput,
+} from "@/lib/players";
 
-const ROLE_VALUES = Object.values(ROLES) as Role[];
+import type { CreatePlayerState } from "./state";
 
-function resolveRole(value: string | undefined | null): Role | null {
+const ROLE_VALUES = Object.values(ROLES) as AppRole[];
+
+function resolveRole(value: string | undefined | null): AppRole | null {
   if (!value) {
     return null;
   }
-  return ROLE_VALUES.includes(value as Role) ? (value as Role) : null;
+  return ROLE_VALUES.includes(value as AppRole) ? (value as AppRole) : null;
 }
 
-export const createPlayerSchema = z.object({
-  name: z
-    .string()
-    .min(3, "Le nom doit contenir au moins 3 caractères")
-    .max(120, "Le nom est trop long"),
-  position: z
-    .string()
-    .min(2, "Le poste est requis")
-    .max(60, "Le poste est trop long"),
-});
-
-export type CreatePlayerInput = inferType<typeof createPlayerSchema>;
-
-export type CreatePlayerState = {
-  success: boolean;
-  errors: Partial<Record<keyof CreatePlayerInput, string>>;
-  message: string | null;
-};
-
-export const initialCreatePlayerState: CreatePlayerState = {
-  success: false,
-  errors: {},
-  message: null,
-};
-
-export async function persistPlayer(
-  input: CreatePlayerInput,
-  creatorId: string
-) {
-  const normalizedName = input.name.replace(/\s+/g, " ").trim();
-  const normalizedPosition = input.position.replace(/\s+/g, " ").trim().toUpperCase();
+export async function persistPlayer(input: CreatePlayerInput) {
+  const normalized = normalizePlayerInput(input);
 
   return prisma.player.create({
     data: {
-      name: normalizedName,
-      position: normalizedPosition,
-      creatorId,
+      firstName: normalized.firstName,
+      lastName: normalized.lastName,
+      primaryPosition: normalized.primaryPosition,
     },
   });
 }
@@ -82,17 +58,18 @@ export async function createPlayer(
   }
 
   const candidate = {
-    name: String(formData.get("name") ?? "").trim(),
-    position: String(formData.get("position") ?? "").trim(),
+    firstName: String(formData.get("firstName") ?? "").trim(),
+    lastName: String(formData.get("lastName") ?? "").trim(),
+    primaryPosition: String(formData.get("primaryPosition") ?? "").trim(),
   } satisfies Record<string, unknown>;
 
   const parsed = createPlayerSchema.safeParse(candidate);
 
   if (!parsed.success) {
-    const fieldErrors: Partial<Record<keyof CreatePlayerInput, string>> = {};
+    const fieldErrors: CreatePlayerState["errors"] = {};
     for (const issue of parsed.error.issues) {
       const field = issue.path[0];
-      if (field === "name" || field === "position") {
+      if (field === "firstName" || field === "lastName" || field === "primaryPosition") {
         fieldErrors[field] = issue.message;
       }
     }
@@ -105,7 +82,7 @@ export async function createPlayer(
   }
 
   try {
-    await persistPlayer(parsed.data, session.user.id);
+    await persistPlayer(parsed.data);
   } catch (error) {
     console.error("Failed to create player", error);
     return {
