@@ -8,6 +8,52 @@ Cette documentation décrit le fonctionnement complet de l'authentification dans
 - **Pages concernées** : toutes les pages d'authentification vivent sous `src/app/(auth)/` (`login`, `register`, `forgot-password`, `reset-password`).
 - **Flux additionnels** : une server action permet de renvoyer l'e-mail de vérification (`src/app/actions/resendVerificationEmail.ts`), et une route API gère la confirmation (`src/app/api/auth/verify-email/route.ts`).
 
+
+## Diagramme de flux global
+
+```mermaid
+flowchart TD
+    subgraph Registration
+        A[Utilisateur soumet le formulaire d'inscription] --> B[Server action register]
+        B --> C[Validation & hash du mot de passe]
+        C --> D[(Prisma crée l'utilisateur + rôle)]
+        D --> E[Génération token vérification]
+        E --> F[Envoi e-mail de confirmation]
+    end
+
+    subgraph EmailVerification
+        F --> G[Utilisateur clique sur le lien]
+        G --> H[Route /api/auth/verify-email]
+        H --> I[Contrôle token & expiration]
+        I --> J[Mise à jour emailVerified + suppression token]
+        J --> K[Redirection vers /login?verified=true]
+    end
+
+    subgraph Login
+        L[Formulaire login] --> M[signIn(credentials/Google)]
+        M --> N[Provider NextAuth]
+        N --> O[Vérif hash/compte ou OAuth]
+        O --> P[Callbacks JWT & session]
+        P --> Q[Redirection vers zone protégée]
+    end
+
+    subgraph PasswordReset
+        R[Formulaire forgot-password] --> S[Server action forgotPassword]
+        S --> T[Génération token reset + email]
+        T --> U[Formulaire reset-password]
+        U --> V[Server action resetPassword]
+        V --> W[Validation token, hash nouveau mot de passe]
+        W --> X[Redirection vers /login?reset=true]
+    end
+
+    style Registration fill:#F0F7FF,stroke:#2563EB,stroke-width:2px
+    style EmailVerification fill:#F8FAFC,stroke:#0EA5E9,stroke-width:2px
+    style Login fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
+    style PasswordReset fill:#FFF7ED,stroke:#F97316,stroke-width:2px
+```
+
+
+
 ## Inscription
 1. Le formulaire client d'inscription est rendu par [`(auth)/register/page.tsx`](register/page.tsx) et soumet les données à la server action [`register`](../register/actions.ts).
 2. La server action :
