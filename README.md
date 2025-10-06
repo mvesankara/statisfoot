@@ -60,7 +60,15 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
     npx prisma migrate dev
     ```
 
-5.  **Lancez le serveur de développement** :
+5.  **Initialisez les rôles et, si besoin, un compte administrateur** :
+    Le script de seed garantit que la table `Role` contient toutes les valeurs attendues et peut créer un compte `ADMIN` si vous
+    fournissez les variables d'environnement `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` (et optionnellement `SEED_ADMIN_NAME`).
+
+    ```bash
+    npx prisma db seed
+    ```
+
+6.  **Lancez le serveur de développement** :
     ```bash
     npm run dev
     ```
