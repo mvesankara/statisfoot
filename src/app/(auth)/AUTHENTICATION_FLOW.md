@@ -8,6 +8,7 @@ Cette documentation décrit le fonctionnement complet de l'authentification dans
 - **Pages concernées** : toutes les pages d'authentification vivent sous `src/app/(auth)/` (`login`, `register`, `forgot-password`, `reset-password`).
 - **Flux additionnels** : une server action permet de renvoyer l'e-mail de vérification (`src/app/actions/resendVerificationEmail.ts`), et une route API gère la confirmation (`src/app/api/auth/verify-email/route.ts`).
 
+
 ## Diagramme de flux global
 
 ```mermaid
@@ -50,6 +51,8 @@ flowchart TD
     style Login fill:#F5F3FF,stroke:#7C3AED,stroke-width:2px
     style PasswordReset fill:#FFF7ED,stroke:#F97316,stroke-width:2px
 ```
+
+
 
 ## Inscription
 1. Le formulaire client d'inscription est rendu par [`(auth)/register/page.tsx`](register/page.tsx) et soumet les données à la server action [`register`](../register/actions.ts).
