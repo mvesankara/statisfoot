@@ -438,10 +438,17 @@ export function NewReportPageClient({
             >
               Réinitialiser
             </button>
+            {/**
+             * Le bouton d'enregistrement doit rester accessible tant qu'un joueur est sélectionné,
+             * même si la liste des joueurs est en cours d'actualisation. On ne le désactive donc que
+             * lorsque la soumission est en cours ou qu'aucun joueur n'est encore disponible.
+             */}
             <button
               type="submit"
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isSubmitting || playersLoading}
+              disabled={
+                isSubmitting || (playersLoading && players.length === 0)
+              }
             >
               {isSubmitting ? "Enregistrement…" : "Enregistrer"}
             </button>
