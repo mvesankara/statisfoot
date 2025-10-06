@@ -18,6 +18,13 @@ const tests: TestCase[] = [
     },
   },
   {
+    name: "/admin routes require admin:access",
+    run: () => {
+      const permission = resolveRequiredPermission("/admin/users");
+      assert.equal(permission, PERMISSIONS["admin:access"]);
+    },
+  },
+  {
     name: "scout with reports:create can access /reports/new",
     run: () => {
       const scoutRole = ROLES.SCOUT;
@@ -29,6 +36,20 @@ const tests: TestCase[] = [
     run: () => {
       const scoutRole = ROLES.SCOUT;
       assert.ok(!isAuthorized(scoutRole, "/reports"));
+    },
+  },
+  {
+    name: "admin can access /admin dashboard",
+    run: () => {
+      const adminRole = ROLES.ADMIN;
+      assert.ok(isAuthorized(adminRole, "/admin"));
+    },
+  },
+  {
+    name: "recruiter cannot access /admin dashboard",
+    run: () => {
+      const recruiterRole = ROLES.RECRUITER;
+      assert.ok(!isAuthorized(recruiterRole, "/admin"));
     },
   },
   {

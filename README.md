@@ -75,6 +75,21 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
 
 L'application sera alors accessible à l'adresse [http://localhost:3000](http://localhost:3000).
 
+### Vérifier qu'un utilisateur possède le rôle administrateur
+
+Deux options sont disponibles pour confirmer que votre compte dispose bien du rôle `ADMIN` :
+
+1. **Via l'interface** : authentifiez-vous puis rendez-vous sur la page [`/profile`](http://localhost:3000/profile). Le rôle actuel
+   est affiché dans la carte de profil.
+2. **Via la base de données** : utilisez le script utilitaire fourni pour interroger Prisma.
+
+   ```bash
+   npm run check:admin -- --email admin@example.com
+   ```
+
+   Le script renvoie un message de confirmation si l'utilisateur dispose du rôle `ADMIN`, ou liste les rôles actuellement associés
+   dans le cas inverse.
+
 ## Lancer en production
 
 Pour construire et lancer l'application en mode production, utilisez les commandes suivantes :
