@@ -12,6 +12,7 @@ const config: Config = {
         "dark-start": "#0B1D34",
         "dark-end": "#0E2442",
         accent: "#5BC4FF",
+        primary: "#2563EB",
         success: "#10B981",
         warning: "#F59E0B",
         danger: "#EF4444",
