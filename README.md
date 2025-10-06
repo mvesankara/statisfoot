@@ -61,6 +61,7 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
     ```
 
 5.  **Initialisez les rôles et, si besoin, un compte administrateur** :
+
     Le script de seed garantit que la table `Role` contient toutes les valeurs attendues. Pour créer automatiquement un premier
     compte administrateur, définissez au préalable les variables d'environnement suivantes (vous pouvez le faire dans votre
     terminal ou dans un fichier `.env.local`) puis lancez la commande de seed :
@@ -75,6 +76,15 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
     Si les variables `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` ne sont pas définies, la commande se contente de créer/mettre
     à jour les rôles sans générer de compte administrateur.
 
+
+    Le script de seed garantit que la table `Role` contient toutes les valeurs attendues et peut créer un compte `ADMIN` si vous
+    fournissez les variables d'environnement `SEED_ADMIN_EMAIL` et `SEED_ADMIN_PASSWORD` (et optionnellement `SEED_ADMIN_NAME`).
+
+    ```bash
+    npx prisma db seed
+    ```
+
+
 6.  **Lancez le serveur de développement** :
     ```bash
     npm run dev
@@ -86,8 +96,13 @@ L'application sera alors accessible à l'adresse [http://localhost:3000](http://
 
 Deux options sont disponibles pour confirmer que votre compte dispose bien du rôle `ADMIN` :
 
+
 1. **Via l'interface** : authentifiez-vous puis rendez-vous sur la page [`/profile`](http://localhost:3000/profile). Le rôle
    `ADMIN` apparaît dans la carte de profil si le compte possède cette permission.
+
+1. **Via l'interface** : authentifiez-vous puis rendez-vous sur la page [`/profile`](http://localhost:3000/profile). Le rôle actuel
+   est affiché dans la carte de profil.
+
 2. **Via la base de données** : utilisez le script utilitaire fourni pour interroger Prisma.
 
    ```bash
