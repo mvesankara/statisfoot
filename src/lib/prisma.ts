@@ -4,7 +4,7 @@
  * Il utilise un singleton global en environnement de développement pour éviter de créer de nouvelles connexions
  * à la base de données à chaque rechargement à chaud (hot-reloading).
  */
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRoleEnum } from "@prisma/client";
 
 type BootstrapGlobals = {
   prisma?: PrismaClient;
@@ -101,14 +101,32 @@ async function ensureEmailVerificationColumns(
   `);
 }
 
+async function ensureRolesExist(client: PrismaClient): Promise<void> {
+  const roleValues = Object.values(UserRoleEnum);
+
+  await Promise.all(
+    roleValues.map(async (roleName) => {
+      await client.role.upsert({
+        where: { name: roleName },
+        update: {},
+        create: { name: roleName },
+      });
+    }),
+  );
+}
+
+async function bootstrapDatabase(client: PrismaClient): Promise<void> {
+  const provider = inferProvider(process.env.DATABASE_URL);
+  await ensureEmailVerificationColumns(client, provider);
+  await ensureRolesExist(client);
+}
+
 const bootstrapPromise =
   globalForPrisma.prismaBootstrapPromise ??
-  ensureEmailVerificationColumns(prisma, inferProvider(process.env.DATABASE_URL)).catch(
-    (error) => {
-      console.error("Failed to ensure email verification columns exist", error);
-      throw error;
-    },
-  );
+  bootstrapDatabase(prisma).catch((error) => {
+    console.error("Failed to bootstrap Prisma dependencies", error);
+    throw error;
+  });
 
 if (!globalForPrisma.prismaBootstrapPromise) {
   globalForPrisma.prismaBootstrapPromise = bootstrapPromise;

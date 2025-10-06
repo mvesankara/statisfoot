@@ -20,6 +20,9 @@
       "react-chartjs-2": "^5.2.0",
       "react-dom": "^18.2.0"
    },
+   "prisma": {
+      "seed": "node prisma/seed.js"
+   },
    "devDependencies": {
       "@eslint/eslintrc": "^3",
       "@tailwindcss/postcss": "^4",
