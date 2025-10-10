@@ -31,8 +31,8 @@ type PlayerListItem = {
 };
 
 type NewReportPageClientProps = {
-
   initialPlayers: PlayerListItem[];
+  canListPlayers: boolean;
 };
 
 function formatPlayerLabel(player: {
@@ -54,7 +54,10 @@ function mapPlayersToOptions(payload: PlayerListItem[]): PlayerOption[] {
   }));
 }
 
-export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps) {
+export function NewReportPageClient({
+  initialPlayers,
+  canListPlayers,
+}: NewReportPageClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status: sessionStatus } = useSession();
@@ -66,8 +69,12 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
   );
 
   const [players, setPlayers] = useState<PlayerOption[]>(initialPlayerOptions);
-  const [playersLoading, setPlayersLoading] = useState(initialPlayers.length === 0);
-  const [playersError, setPlayersError] = useState<string | null>(null);
+  const [playersLoading, setPlayersLoading] = useState(
+    canListPlayers && initialPlayers.length === 0
+  );
+  const [playersError, setPlayersError] = useState<string | null>(
+    canListPlayers ? null : "Vous n’avez pas les permissions pour voir les joueurs."
+  );
   const [toast, setToast] = useState<ToastState | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isMounted = useRef(true);
@@ -109,10 +116,20 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
   }, [initialPlayerId, setValue]);
 
   const fetchPlayers = useCallback(async () => {
+    if (!canListPlayers) {
+      return;
+    }
     setPlayersLoading(true);
     setPlayersError(null);
     try {
       const response = await fetch("/api/players");
+      if (response.status === 401 || response.status === 403) {
+        if (isMounted.current) {
+          setPlayersError("Vous n’avez pas les permissions pour voir les joueurs.");
+          setPlayers(initialPlayerOptions);
+        }
+        return;
+      }
       if (!response.ok) {
         throw new Error("Erreur réseau");
       }
@@ -134,11 +151,15 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
         setPlayersLoading(false);
       }
     }
-  }, [initialPlayerOptions]);
+  }, [canListPlayers, initialPlayerOptions]);
 
   useEffect(() => {
-    fetchPlayers();
-  }, [fetchPlayers]);
+    if (canListPlayers) {
+      fetchPlayers();
+    } else {
+      setPlayersLoading(false);
+    }
+  }, [canListPlayers, fetchPlayers]);
 
   const onSubmit = async (values: ReportFormValues) => {
     setSubmitError(null);
@@ -229,7 +250,7 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                 id="playerId"
                 {...register("playerId")}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                disabled={playersLoading}
+                disabled={(playersLoading && players.length === 0) || !canListPlayers}
               >
                 <option value="">Sélectionnez un joueur</option>
                 {players.map((player) => (
@@ -241,20 +262,27 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
                   </option>
                 ))}
               </select>
-              {playersLoading && (
+              {playersLoading && players.length === 0 && (
                 <p className="mt-1 text-xs text-gray-500">Chargement des joueurs…</p>
               )}
               {playersError && (
                 <div className="mt-1 text-xs text-red-600">
                   <p>{playersError}</p>
-                  <button
-                    type="button"
-                    className="mt-1 font-medium text-primary hover:underline"
-                    onClick={() => fetchPlayers()}
-                  >
-                    Réessayer
-                  </button>
+                  {canListPlayers && (
+                    <button
+                      type="button"
+                      className="mt-1 font-medium text-primary hover:underline"
+                      onClick={() => fetchPlayers()}
+                    >
+                      Réessayer
+                    </button>
+                  )}
                 </div>
+              )}
+              {!playersLoading && canListPlayers && players.length === 0 && !playersError && (
+                <p className="mt-1 text-xs text-gray-500">
+                  Aucun joueur n’est encore disponible. Ajoutez un joueur pour pouvoir rédiger un rapport.
+                </p>
               )}
               {errors.playerId && (
                 <p className="mt-1 text-xs text-red-600">{errors.playerId.message}</p>
@@ -410,10 +438,17 @@ export function NewReportPageClient({ initialPlayers }: NewReportPageClientProps
             >
               Réinitialiser
             </button>
+            {/**
+             * Le bouton d'enregistrement doit rester accessible tant qu'un joueur est sélectionné,
+             * même si la liste des joueurs est en cours d'actualisation. On ne le désactive donc que
+             * lorsque la soumission est en cours ou qu'aucun joueur n'est encore disponible.
+             */}
             <button
               type="submit"
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isSubmitting || playersLoading}
+              disabled={
+                isSubmitting || (playersLoading && players.length === 0)
+              }
             >
               {isSubmitting ? "Enregistrement…" : "Enregistrer"}
             </button>

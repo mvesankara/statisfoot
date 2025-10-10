@@ -7,7 +7,8 @@
       "build": "next build --turbopack",
       "start": "next start",
       "lint": "eslint",
-      "test": "tsc --project tsconfig.test.json && node dist-test/tests/reports-new.test.js && node dist-test/tests/middleware.spec.js"
+      "test": "tsc --project tsconfig.test.json && node dist-test/tests/reports-new.test.js && node dist-test/tests/middleware.spec.js",
+      "check:admin": "node scripts/check-admin.js"
    },
    "dependencies": {
       "@prisma/client": "^6.16.2",

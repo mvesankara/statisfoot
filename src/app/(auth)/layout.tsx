@@ -19,13 +19,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <Image
             src="/brand/statisfoot-logo.jpeg"
             alt="Statisfoot"
-            width={44}
-            height={44}
+            width={56}
+            height={56}
             priority
             className="rounded-lg"
           />
           <div className="text-xl font-semibold">
-            Statis<span className="text-brand-sky">is</span>foot
+            Statis<span className="text-brand-sky">foot</span>
           </div>
         </div>
 
@@ -35,7 +35,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-4">
-          © {new Date().getFullYear()} Statisf<span className="text-brand-sky">is</span>foot
+          © {new Date().getFullYear()} Statis<span className="text-brand-sky">foot</span>
         </p>
       </div>
     </div>
