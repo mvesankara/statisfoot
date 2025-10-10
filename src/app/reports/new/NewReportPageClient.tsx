@@ -232,53 +232,6 @@ export function NewReportPageClient({
       </header>
 
 
-
-      <section className="rounded-xl border border-primary/10 bg-primary/5 p-4 text-sm text-gray-700 shadow-sm">
-        <p className="font-semibold text-primary">Données clés attendues</p>
-        <ul className="mt-3 space-y-2 text-xs text-gray-600 sm:text-sm">
-          <li>
-            <span className="font-medium text-gray-900">Joueur évalué</span>
-            {" : correspond au champ "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">playerId</code>
-            {" du schéma Prisma et identifie le joueur relié au rapport."}
-          </li>
-          <li>
-            <span className="font-medium text-gray-900">Titre</span>
-            {" et "}
-            <span className="font-medium text-gray-900">Observations générales</span>
-            {" alimentent les champs "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">title</code>
-            {" et "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">summary</code>
-            {" utilisés pour contextualiser le rapport."}
-          </li>
-          <li>
-            <span className="font-medium text-gray-900">Note globale</span>
-            {" nourrit la colonne "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">overall</code>
-            {" tandis que "}
-            <span className="font-medium text-gray-900">Points forts</span>
-            {" et "}
-            <span className="font-medium text-gray-900">Axes d’amélioration</span>
-            {" mettent à jour "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">strengths</code>
-            {" et "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">weaknesses</code>
-            {"."}
-          </li>
-          <li>
-            <span className="font-medium text-gray-900">Recommandation</span>
-            {" vient alimenter le champ "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">potential</code>
-            {" et la "}
-            <span className="font-medium text-gray-900">Date du match</span>
-            {" est enregistrée dans "}
-            <code className="ml-1 rounded bg-white/60 px-1 py-0.5 text-[0.7rem] font-semibold text-primary shadow">matchDate</code>
-            {"."}
-          </li>
-        </ul>
-      </section>
-
       <section className="rounded-2xl border border-gray-200 bg-white/90 p-8 shadow-lg">
         <div className="mb-6 grid gap-4 sm:grid-cols-2">
           <div>
