@@ -231,6 +231,8 @@ export function NewReportPageClient({
         </p>
       </header>
 
+
+
       <section className="rounded-xl border border-primary/10 bg-primary/5 p-4 text-sm text-gray-700 shadow-sm">
         <p className="font-semibold text-primary">Données clés attendues</p>
         <ul className="mt-3 space-y-2 text-xs text-gray-600 sm:text-sm">
