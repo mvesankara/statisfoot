@@ -78,6 +78,7 @@ const tests: TestCase[] = [
       const [, options] = calls[0];
       const requestInit = options ?? {};
       assert.equal(requestInit.method, "POST");
+      assert.equal(requestInit.credentials, "include");
       assert.ok(requestInit.body);
       const body = JSON.parse(String(requestInit.body));
       assert.deepEqual(body, payload);

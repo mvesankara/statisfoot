@@ -4,12 +4,12 @@
  * Il utilise un singleton global en environnement de développement pour éviter de créer de nouvelles connexions
  * à la base de données à chaque rechargement à chaud (hot-reloading).
  */
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserRoleEnum } from "@prisma/client";
 
 type BootstrapGlobals = {
   prisma?: PrismaClient;
+  prismaWithBootstrap?: PrismaClient;
   prismaBootstrapPromise?: Promise<void>;
-  prismaBootstrapMiddlewareRegistered?: boolean;
 };
 
 const globalForPrisma = globalThis as unknown as BootstrapGlobals;
@@ -21,7 +21,7 @@ const globalForPrisma = globalThis as unknown as BootstrapGlobals;
  * En production, une nouvelle instance est créée.
  * Les logs de requêtes sont activés en développement.
  */
-export const prisma =
+const basePrismaClient =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
@@ -42,6 +42,10 @@ function inferProvider(url: string | undefined): SupportedProvider {
 
 function escapeIdentifier(identifier: string): string {
   return identifier.replace(/"/g, '""');
+}
+
+function escapeLiteral(value: string): string {
+  return value.replace(/'/g, "''");
 }
 
 function resolvePostgresSchema(url: string | undefined): string {
@@ -101,25 +105,91 @@ async function ensureEmailVerificationColumns(
   `);
 }
 
+async function ensureUserRoleEnumValues(
+  client: PrismaClient,
+  provider: SupportedProvider,
+): Promise<void> {
+  if (provider !== "postgresql") return;
+
+  const schema = resolvePostgresSchema(process.env.DATABASE_URL);
+  const enumName = "UserRoleEnum";
+
+  const existingValues = await client.$queryRaw<Array<{ enumlabel: string }>>`
+    SELECT e.enumlabel
+    FROM pg_type t
+    JOIN pg_enum e ON t.oid = e.enumtypid
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = ${schema} AND t.typname = ${enumName}
+  `;
+
+  const existingLabels = new Set(existingValues.map((row) => row.enumlabel));
+  const missingValues = Object.values(UserRoleEnum).filter(
+    (value) => !existingLabels.has(value),
+  );
+
+  if (missingValues.length === 0) return;
+
+  const escapedSchema = escapeIdentifier(schema);
+  const escapedEnumName = escapeIdentifier(enumName);
+
+  for (const value of missingValues) {
+    await client.$executeRawUnsafe(
+      `ALTER TYPE "${escapedSchema}"."${escapedEnumName}" ADD VALUE IF NOT EXISTS '${escapeLiteral(value)}'`,
+    );
+  }
+}
+
+async function ensureRolesExist(client: PrismaClient): Promise<void> {
+  const roleValues = Object.values(UserRoleEnum);
+
+  await Promise.all(
+    roleValues.map(async (roleName) => {
+      await client.role.upsert({
+        where: { name: roleName },
+        update: {},
+        create: { name: roleName },
+      });
+    }),
+  );
+}
+
+async function bootstrapDatabase(client: PrismaClient): Promise<void> {
+  const provider = inferProvider(process.env.DATABASE_URL);
+  await ensureEmailVerificationColumns(client, provider);
+  await ensureUserRoleEnumValues(client, provider);
+  await ensureRolesExist(client);
+}
+
 const bootstrapPromise =
   globalForPrisma.prismaBootstrapPromise ??
-  ensureEmailVerificationColumns(prisma, inferProvider(process.env.DATABASE_URL)).catch(
-    (error) => {
-      console.error("Failed to ensure email verification columns exist", error);
-      throw error;
-    },
-  );
+  bootstrapDatabase(basePrismaClient).catch((error) => {
+    console.error("Failed to bootstrap Prisma dependencies", error);
+    throw error;
+  });
 
 if (!globalForPrisma.prismaBootstrapPromise) {
   globalForPrisma.prismaBootstrapPromise = bootstrapPromise;
 }
 
-if (!globalForPrisma.prismaBootstrapMiddlewareRegistered) {
-  prisma.$use(async (params, next) => {
-    await bootstrapPromise;
-    return next(params);
+const prismaWithBootstrap =
+  globalForPrisma.prismaWithBootstrap ??
+  basePrismaClient.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ args, query }) {
+          await bootstrapPromise;
+          return query(args);
+        },
+      },
+    },
   });
-  globalForPrisma.prismaBootstrapMiddlewareRegistered = true;
+
+if (!globalForPrisma.prismaWithBootstrap) {
+  globalForPrisma.prismaWithBootstrap = prismaWithBootstrap;
 }
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production" && !globalForPrisma.prisma) {
+  globalForPrisma.prisma = basePrismaClient;
+}
+
+export const prisma = prismaWithBootstrap;

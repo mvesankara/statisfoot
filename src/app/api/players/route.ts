@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { hasPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
+import { hasAnyPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
 import {
   createPlayerSchema,
   normalizePlayerInput,
@@ -30,7 +30,7 @@ function buildFieldErrors(issues: ZodIssue[]): FieldErrors {
 
 function getAuthorizedUser(
   session: Session,
-  permission: (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
+  permissions: keyof typeof PERMISSIONS | (keyof typeof PERMISSIONS)[]
 ) {
   const role = session?.user?.role as AppRole | null | undefined;
   const userId = session?.user?.id;
@@ -39,7 +39,9 @@ function getAuthorizedUser(
     return null;
   }
 
-  if (!hasPermission(role, permission as keyof typeof PERMISSIONS)) {
+  const requiredPermissions = Array.isArray(permissions) ? permissions : [permissions];
+
+  if (!hasAnyPermission(role, requiredPermissions)) {
     return null;
   }
 
@@ -48,7 +50,10 @@ function getAuthorizedUser(
 
 export async function GET() {
   const session = await auth();
-  const authUser = getAuthorizedUser(session, PERMISSIONS["players:read"]);
+  const authUser = getAuthorizedUser(session, [
+    "players:read",
+    "reports:create",
+  ]);
 
   if (!authUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -82,7 +87,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  const authUser = getAuthorizedUser(session, PERMISSIONS["players:create"]);
+  const authUser = getAuthorizedUser(session, "players:create");
 
   if (!authUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
