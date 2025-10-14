@@ -43,6 +43,9 @@ declare module "next-auth/jwt" {
   }
 }
 
+const AUTH_BASE_URL = computeAuthBaseUrl();
+const GOOGLE_REDIRECT_URI = `${AUTH_BASE_URL}/api/auth/callback/google`;
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   // Provide a secret via AUTH_SECRET (or NEXTAUTH_SECRET for backwards compatibility).
@@ -50,8 +53,15 @@ export const authOptions: NextAuthOptions = {
   pages: { signIn: "/login" },
   providers: [
     Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientId: requiredEnv("GOOGLE_CLIENT_ID"),
+      clientSecret: requiredEnv("GOOGLE_CLIENT_SECRET"),
+      authorization: {
+        params: {
+          redirect_uri: GOOGLE_REDIRECT_URI,
+          prompt: "consent",
+          access_type: "offline",
+        },
+      },
     }),
     Credentials({
       name: "Email & Mot de passe",
@@ -178,6 +188,37 @@ export const handlers = { GET: authHandler, POST: authHandler };
 export async function auth() {
   return getServerSession(authOptions);
 }
+
+
+function computeAuthBaseUrl() {
+  const candidates = [
+    process.env.AUTH_URL,
+    process.env.NEXTAUTH_URL,
+    process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`,
+  ].filter(Boolean) as string[];
+
+  if (candidates.length === 0) {
+    throw new Error(
+      "Aucune URL d'authentification n'est définie. Renseignez AUTH_URL ou NEXTAUTH_URL."
+    );
+  }
+
+  const base = candidates[0]!;
+
+  return base.replace(/\/?$/, "");
+}
+
+function requiredEnv(key: string) {
+  const value = process.env[key];
+
+  if (!value) {
+    throw new Error(`La variable d'environnement ${key} est obligatoire pour l'authentification.`);
+  }
+
+  return value;
+}
+
+
 
 async function upsertGoogleUser({
   email,
