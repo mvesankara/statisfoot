@@ -47,11 +47,15 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
 
     ```env
     DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
-    NEXTAUTH_URL="http://localhost:3000"
-    NEXTAUTH_SECRET="votre_secret_ici"
+    AUTH_URL="http://localhost:3000"               # ou NEXTAUTH_URL pour rétrocompatibilité
+    AUTH_SECRET="votre_secret_ici"                 # ou NEXTAUTH_SECRET
     GOOGLE_CLIENT_ID="votre_client_id_google"
     GOOGLE_CLIENT_SECRET="votre_secret_client_google"
     ```
+
+    > ⚠️ **Google OAuth** : ajoutez exactement `http://localhost:3000/api/auth/callback/google` (ou l'URL correspondant à `AUTH_URL`)
+    > dans la liste des URI de redirection autorisés de votre projet Google Cloud. Une erreur `redirect_uri_mismatch` indique que
+    > l'URL générée par NextAuth ne correspond pas à la configuration côté Google.
 
 4.  **Appliquez les migrations de la base de données** :
     Cette commande va créer les tables nécessaires dans votre base de données en se basant sur le schéma Prisma.
