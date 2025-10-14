@@ -189,6 +189,7 @@ export async function auth() {
   return getServerSession(authOptions);
 }
 
+
 function computeAuthBaseUrl() {
   const candidates = [
     process.env.AUTH_URL,
@@ -216,6 +217,8 @@ function requiredEnv(key: string) {
 
   return value;
 }
+
+
 
 async function upsertGoogleUser({
   email,
