@@ -55,7 +55,9 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
 
     > ⚠️ **Google OAuth** : ajoutez exactement `http://localhost:3000/api/auth/callback/google` (ou l'URL correspondant à `AUTH_URL`)
     > dans la liste des URI de redirection autorisés de votre projet Google Cloud. Une erreur `redirect_uri_mismatch` indique que
-    > l'URL générée par NextAuth ne correspond pas à la configuration côté Google.
+    > l'URL générée par NextAuth ne correspond pas à la configuration côté Google. Si le port 3000 est déjà occupé et que Next.js
+    > démarre sur un autre port (ex. 3002), pensez à ajouter ce port supplémentaire dans la console Google ou à arrêter le
+    > processus qui monopolise le port 3000.
 
 4.  **Appliquez les migrations de la base de données** :
     Cette commande va créer les tables nécessaires dans votre base de données en se basant sur le schéma Prisma.

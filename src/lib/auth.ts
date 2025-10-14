@@ -203,9 +203,38 @@ function computeAuthBaseUrl() {
     );
   }
 
-  const base = candidates[0]!;
+  const rawBase = candidates[0]!;
+  const trimmed = rawBase.replace(/\/?$/, "");
 
-  return base.replace(/\/?$/, "");
+  if (process.env.NODE_ENV === "production") {
+    return trimmed;
+  }
+
+  try {
+    const url = new URL(trimmed);
+    const devPort = process.env.PORT;
+
+    if (
+      devPort &&
+      devPort !== url.port &&
+      ["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname)
+    ) {
+      console.warn(
+        `AUTH_URL pointe vers ${url.toString()} mais le serveur Next.js tourne sur le port ${devPort}. ` +
+          "Mise à jour automatique de l'URL pour éviter une erreur de redirection OAuth."
+      );
+      url.port = devPort;
+      return url.toString();
+    }
+
+    return url.toString().replace(/\/?$/, "");
+  } catch (error) {
+    console.warn(
+      "Impossible d'analyser AUTH_URL, retour au format brut. Vérifiez votre configuration.",
+      error
+    );
+    return trimmed;
+  }
 }
 
 function requiredEnv(key: string) {
