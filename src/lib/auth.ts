@@ -5,7 +5,8 @@ import NextAuth, {
 } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
-import { compare } from "bcryptjs";
+import { compare, hash } from "bcryptjs";
+import { randomBytes } from "crypto";
 
 import { prisma } from "@/lib/prisma";
 
@@ -102,6 +103,31 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        const email = user.email?.toLowerCase();
+        if (!email) return false;
+
+        const dbUser = await upsertGoogleUser({
+          email,
+          name: user.name ?? profile?.name ?? null,
+          image: user.image ?? null,
+        });
+
+        if (!dbUser) return false;
+
+        user.id = dbUser.id;
+        user.name = dbUser.displayName ?? dbUser.email;
+        user.email = dbUser.email;
+        user.image = dbUser.avatarUrl ?? user.image;
+        user.role = dbUser.roles[0]?.role?.name ?? null;
+        user.displayName = dbUser.displayName;
+        user.username = dbUser.username;
+        user.emailVerified = dbUser.emailVerified ?? null;
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         const {
@@ -151,4 +177,100 @@ export const handlers = { GET: authHandler, POST: authHandler };
 
 export async function auth() {
   return getServerSession(authOptions);
+}
+
+async function upsertGoogleUser({
+  email,
+  name,
+  image,
+}: {
+  email: string;
+  name: string | null;
+  image: string | null;
+}) {
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      roles: {
+        include: { role: true },
+        orderBy: { assignedAt: "asc" },
+      },
+    },
+  });
+
+  if (existing) {
+    const needsUpdate =
+      (!existing.displayName && name) ||
+      (!existing.avatarUrl && image) ||
+      !existing.emailVerified;
+
+    if (needsUpdate) {
+      const updated = await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          displayName: existing.displayName ?? name ?? existing.email,
+          avatarUrl: existing.avatarUrl ?? image,
+          emailVerified: existing.emailVerified ?? new Date(),
+        },
+        include: {
+          roles: {
+            include: { role: true },
+            orderBy: { assignedAt: "asc" },
+          },
+        },
+      });
+
+      return updated;
+    }
+
+    return existing;
+  }
+
+  const displayName = name ?? email.split("@")[0];
+  const username = await generateUniqueUsername(displayName);
+  const placeholderPassword = randomBytes(16).toString("hex");
+  const hashedPass = await hash(placeholderPassword, 10);
+
+  return prisma.user.create({
+    data: {
+      email,
+      displayName,
+      username,
+      hashedPass,
+      avatarUrl: image,
+      emailVerified: new Date(),
+    },
+    include: {
+      roles: {
+        include: { role: true },
+        orderBy: { assignedAt: "asc" },
+      },
+    },
+  });
+}
+
+async function generateUniqueUsername(base: string) {
+  const normalizedBase = base
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+
+  const fallback = "user";
+  const root = normalizedBase.length ? normalizedBase : fallback;
+
+  for (let i = 0; i < 20; i += 1) {
+    const candidate = i === 0 ? root : `${root}${i + 1}`;
+    const exists = await prisma.user.findUnique({
+      where: { username: candidate },
+      select: { id: true },
+    });
+
+    if (!exists) {
+      return candidate;
+    }
+  }
+
+  return `${root}${Date.now()}`;
 }
