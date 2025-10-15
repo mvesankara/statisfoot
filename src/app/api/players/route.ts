@@ -9,6 +9,7 @@ import {
   formatPlayerName,
 } from "@/lib/players";
 import type { ZodIssue } from "@/lib/zod";
+import type { Player } from "@prisma/client";
 
 type Session = Awaited<ReturnType<typeof auth>>;
 
@@ -70,7 +71,12 @@ export async function GET() {
       },
     });
 
-    const payload = players.map((player) => ({
+    type PlayerListItem = Pick<
+      Player,
+      "id" | "firstName" | "lastName" | "primaryPosition"
+    >;
+
+    const payload = players.map((player: PlayerListItem) => ({
       ...player,
       fullName: formatPlayerName(player.firstName, player.lastName),
     }));
