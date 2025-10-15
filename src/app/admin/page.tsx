@@ -67,7 +67,7 @@ export default async function AdminDashboard() {
               Aucun utilisateur trouvé.
             </p>
           ) : (
-            latestUsers.map((user) => {
+            latestUsers.map((user: LatestUsers[number]) => {
               const primaryRole = user.roles[0]?.role?.name ?? null;
 
               return (
