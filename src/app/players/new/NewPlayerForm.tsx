@@ -41,6 +41,9 @@ export function NewPlayerForm() {
     },
   });
 
+  const registerField = <Name extends keyof CreatePlayerInput>(name: Name) =>
+    register(name) as unknown as Record<string, unknown>;
+
   const onSubmit = async (values: CreatePlayerInput) => {
     setFeedback(null);
     setServerFieldErrors(null);
@@ -106,7 +109,7 @@ export function NewPlayerForm() {
         <label className="flex flex-col gap-2 text-sm text-slate-200">
           Prénom
           <input
-            {...register("firstName")}
+            {...registerField("firstName")}
             type="text"
             placeholder="Ex. Enzo"
             className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
@@ -118,7 +121,7 @@ export function NewPlayerForm() {
         <label className="flex flex-col gap-2 text-sm text-slate-200">
           Nom
           <input
-            {...register("lastName")}
+            {...registerField("lastName")}
             type="text"
             placeholder="Ex. Leclerc"
             className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white placeholder:text-slate-500 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
@@ -130,7 +133,7 @@ export function NewPlayerForm() {
         <label className="flex flex-col gap-2 text-sm text-slate-200">
           Poste principal
           <select
-            {...register("primaryPosition")}
+            {...registerField("primaryPosition")}
             className="rounded-lg border border-white/10 bg-slate-950/60 px-3 py-2 text-sm text-white focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent"
           >
             <option value="">Sélectionnez un poste</option>

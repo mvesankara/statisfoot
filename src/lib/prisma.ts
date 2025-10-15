@@ -1,10 +1,24 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @file Initialisation du client Prisma.
  * @description Ce fichier est responsable de l'instanciation et de l'exportation du client Prisma.
  * Il utilise un singleton global en environnement de développement pour éviter de créer de nouvelles connexions
  * à la base de données à chaque rechargement à chaud (hot-reloading).
  */
-import { PrismaClient, UserRoleEnum } from "@prisma/client";
+import * as prismaPackage from "@prisma/client";
+
+type PrismaClient = {
+  [key: string]: any;
+  $queryRawUnsafe<T = unknown>(query: string, ...params: unknown[]): Promise<T>;
+  $queryRaw<T = unknown>(strings: TemplateStringsArray, ...values: unknown[]): Promise<T>;
+  $executeRawUnsafe(query: string, ...params: unknown[]): Promise<unknown>;
+  $extends(extension: unknown): PrismaClient;
+};
+
+const { PrismaClient: PrismaClientConstructor, UserRoleEnum } = prismaPackage as {
+  PrismaClient: new (...args: unknown[]) => PrismaClient;
+  UserRoleEnum: Record<string, string>;
+};
 
 type BootstrapGlobals = {
   prisma?: PrismaClient;
@@ -21,11 +35,45 @@ const globalForPrisma = globalThis as unknown as BootstrapGlobals;
  * En production, une nouvelle instance est créée.
  * Les logs de requêtes sont activés en développement.
  */
+const missingDatabaseUrl = !process.env.DATABASE_URL;
+if (missingDatabaseUrl) {
+  console.warn(
+    "DATABASE_URL n'est pas défini. Prisma utilisera un client de substitution qui rejette toutes les opérations."
+  );
+}
+
+function createRejectingDelegate(): any {
+  const reject = async () => {
+    throw new Error("DATABASE_URL n'est pas configurée pour cette opération Prisma.");
+  };
+
+  return new Proxy(reject, {
+    apply: () => reject(),
+    get: () => createRejectingDelegate(),
+  });
+}
+
+function createPrismaStub(): PrismaClient {
+  return new Proxy(
+    {},
+    {
+      get: (_, prop) => {
+        if (prop === "$extends") {
+          return () => createPrismaStub();
+        }
+        return createRejectingDelegate();
+      },
+    }
+  ) as PrismaClient;
+}
+
 const basePrismaClient =
   globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-  });
+  (missingDatabaseUrl
+    ? createPrismaStub()
+    : new PrismaClientConstructor({
+        log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+      }));
 
 type SupportedProvider = "postgresql" | "sqlite";
 
@@ -160,31 +208,39 @@ async function bootstrapDatabase(client: PrismaClient): Promise<void> {
   await ensureRolesExist(client);
 }
 
-const bootstrapPromise =
-  globalForPrisma.prismaBootstrapPromise ??
-  bootstrapDatabase(basePrismaClient).catch((error) => {
-    console.error("Failed to bootstrap Prisma dependencies", error);
-    throw error;
-  });
+const bootstrapPromise = missingDatabaseUrl
+  ? Promise.resolve()
+  : globalForPrisma.prismaBootstrapPromise ??
+    bootstrapDatabase(basePrismaClient).catch((error) => {
+      console.error("Failed to bootstrap Prisma dependencies", error);
+      throw error;
+    });
 
-if (!globalForPrisma.prismaBootstrapPromise) {
+if (!missingDatabaseUrl && !globalForPrisma.prismaBootstrapPromise) {
   globalForPrisma.prismaBootstrapPromise = bootstrapPromise;
 }
 
-const prismaWithBootstrap =
-  globalForPrisma.prismaWithBootstrap ??
-  basePrismaClient.$extends({
-    query: {
-      $allModels: {
-        async $allOperations({ args, query }) {
-          await bootstrapPromise;
-          return query(args);
+const prismaWithBootstrap = missingDatabaseUrl
+  ? basePrismaClient
+  : globalForPrisma.prismaWithBootstrap ??
+    basePrismaClient.$extends({
+      query: {
+        $allModels: {
+          async $allOperations({
+            args,
+            query,
+          }: {
+            args: any;
+            query: (args: any) => Promise<any>;
+          }) {
+            await bootstrapPromise;
+            return query(args);
+          },
         },
       },
-    },
-  });
+    });
 
-if (!globalForPrisma.prismaWithBootstrap) {
+if (!missingDatabaseUrl && !globalForPrisma.prismaWithBootstrap) {
   globalForPrisma.prismaWithBootstrap = prismaWithBootstrap;
 }
 

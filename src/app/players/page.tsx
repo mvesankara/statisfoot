@@ -17,6 +17,15 @@ const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
 
 const ROLE_VALUES = Object.values(ROLES) as AppRole[];
 
+type PlayersListRow = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  primaryPosition: string | null;
+  createdAt: Date;
+  _count: { reports: number };
+} & Record<string, unknown>;
+
 /**
  * @page PlayersPage
  * @description Liste des joueurs enregistrés dans la base.
@@ -36,12 +45,12 @@ export default async function PlayersPage() {
     : false;
 
 
-  const players = await prisma.player.findMany({
+  const players = (await prisma.player.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { reports: true } },
     },
-  });
+  })) as PlayersListRow[];
 
   return (
     <div className="space-y-8">

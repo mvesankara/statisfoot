@@ -3,9 +3,7 @@
  * @description Ce fichier définit les rôles, les permissions, et la relation entre eux (grants).
  * Il fournit également une fonction pour vérifier si un rôle possède une permission spécifique.
  */
-import type { Role as PrismaRole } from "@prisma/client";
-
-const ROLE_VALUES = ["SCOUT", "RECRUITER", "AGENT", "ADMIN"] as const satisfies readonly PrismaRole[];
+const ROLE_VALUES = ["SCOUT", "RECRUITER", "AGENT", "ADMIN"] as const;
 
 /**
  * @const {object} ROLES

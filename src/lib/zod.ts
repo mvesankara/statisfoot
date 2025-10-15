@@ -172,7 +172,8 @@ class ZObject<Shape extends ZodRawShape> extends ZodType<{ [K in keyof Shape]: S
 
 export const z = {
   string: () => new ZString(),
-  enum: <T extends readonly [string, ...string[]]>(values: T) => new ZEnum(values),
+  enum: <T extends readonly [string, ...string[]]>(values: T, message?: string) =>
+    new ZEnum(values, message),
   object: <Shape extends ZodRawShape>(shape: Shape) => new ZObject(shape),
 };
 

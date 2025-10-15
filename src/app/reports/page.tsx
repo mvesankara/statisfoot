@@ -4,6 +4,19 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatPlayerName, formatPrimaryPosition } from "@/lib/players";
 
+type ReportListRow = {
+  id: string;
+  status: string;
+  createdAt: Date;
+  matchDate: Date | null;
+  player: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    primaryPosition: string | null;
+  };
+} & Record<string, unknown>;
+
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "long",
@@ -20,7 +33,7 @@ export default async function ReportsPage() {
     redirect("/login");
   }
 
-  const reports = await prisma.report.findMany({
+  const reports = (await prisma.report.findMany({
     where: { authorId: session.user.id },
     include: {
       player: {
@@ -33,7 +46,7 @@ export default async function ReportsPage() {
       },
     },
     orderBy: { createdAt: "desc" },
-  });
+  })) as ReportListRow[];
 
   return (
     <div className="space-y-8">
