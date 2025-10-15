@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import type { Prisma } from "@prisma/client";
+
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -31,6 +33,10 @@ const PLAYER_SELECT = {
   lastName: true,
   primaryPosition: true,
 } as const;
+
+type ReportWithPlayer = Prisma.ReportGetPayload<{
+  include: { player: { select: typeof PLAYER_SELECT } };
+}>;
 
 function validateCreateReportPayload(body: unknown): ValidationResult {
   if (!body || typeof body !== "object") {
@@ -121,12 +127,7 @@ function validateCreateReportPayload(body: unknown): ValidationResult {
   return { success: true, data: data as CreateReportPayload };
 }
 
-function serializePlayer(player: {
-  id: string;
-  firstName: string | null;
-  lastName: string | null;
-  primaryPosition: string | null;
-}) {
+function serializePlayer(player: ReportWithPlayer["player"]) {
   const fullName = [player.firstName, player.lastName]
     .filter((value) => value && value.trim().length > 0)
     .join(" ");
@@ -154,7 +155,7 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    const payload = reports.map((report) => ({
+    const payload = reports.map((report: ReportWithPlayer) => ({
       ...report,
       player: serializePlayer(report.player),
     }));
