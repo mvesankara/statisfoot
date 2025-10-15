@@ -44,12 +44,13 @@ declare module "next-auth/jwt" {
 }
 
 const AUTH_BASE_URL = computeAuthBaseUrl();
+const AUTH_SECRET = resolveAuthSecret(AUTH_BASE_URL);
 const GOOGLE_REDIRECT_URI = `${AUTH_BASE_URL}/api/auth/callback/google`;
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   // Provide a secret via AUTH_SECRET (or NEXTAUTH_SECRET for backwards compatibility).
-  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
+  secret: AUTH_SECRET,
   pages: { signIn: "/login" },
   providers: [
     Google({
@@ -200,6 +201,25 @@ function computeAuthBaseUrl() {
   const base = candidates[0] ?? "http://localhost:3000";
 
   return base.replace(/\/?$/, "");
+}
+
+function resolveAuthSecret(baseUrl: string) {
+  const explicitSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET;
+  if (explicitSecret) {
+    return explicitSecret;
+  }
+
+  const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\\d+)?$/i;
+  if (localhostPattern.test(baseUrl)) {
+    console.warn(
+      "Aucune variable AUTH_SECRET ou NEXTAUTH_SECRET trouvée. Utilisation d'un secret de secours pour l'environnement local. Ne pas utiliser en production."
+    );
+    return "development-only-auth-secret-please-change-me";
+  }
+
+  throw new Error(
+    "Les variables d'environnement AUTH_SECRET ou NEXTAUTH_SECRET sont obligatoires en production pour sécuriser NextAuth."
+  );
 }
 
 function requiredEnv(key: string) {
