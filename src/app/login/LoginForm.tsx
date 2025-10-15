@@ -44,7 +44,8 @@ export default function LoginForm() {
       return;
     }
 
-    router.push(res?.url ?? "/app");
+    const destination = resolveDestination(res?.url);
+    router.push(destination);
     router.refresh();
   };
 
@@ -66,7 +67,7 @@ export default function LoginForm() {
       </div>
       <div className="mt-4">
         <button
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl: "/app" })}
           className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-slate-700 px-4 py-2 font-medium text-slate-100 hover:opacity-90"
         >
           Continuer avec Google
@@ -79,4 +80,29 @@ export default function LoginForm() {
       </div>
     </main>
   );
+}
+
+function resolveDestination(targetUrl?: string | null) {
+  if (typeof window === "undefined") {
+    return targetUrl ?? "/app";
+  }
+
+  if (!targetUrl) {
+    return "/app";
+  }
+
+  try {
+    const parsed = new URL(targetUrl, window.location.origin);
+    if (parsed.origin === window.location.origin) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}` || "/app";
+    }
+  } catch (error) {
+    console.warn("Impossible de normaliser l'URL de redirection.", error);
+  }
+
+  if (targetUrl.startsWith("/")) {
+    return targetUrl;
+  }
+
+  return "/app";
 }
