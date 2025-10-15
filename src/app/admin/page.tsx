@@ -9,8 +9,15 @@ import { ROLES } from "@/lib/rbac";
  * Affiche des statistiques globales sur l'application (nombre d'utilisateurs, de rapports, de joueurs).
  * @returns {Promise<JSX.Element>} Le composant de la page du tableau de bord administrateur.
  */
+type LatestUsers = Awaited<ReturnType<typeof prisma.user.findMany>>;
+
 export default async function AdminDashboard() {
-  const [users, reports, players, latestUsers] = await Promise.all([
+  const [users, reports, players, latestUsers]: [
+    number,
+    number,
+    number,
+    LatestUsers,
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.report.count(),
     prisma.player.count(),
