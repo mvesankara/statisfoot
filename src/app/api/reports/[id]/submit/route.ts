@@ -7,8 +7,9 @@ import { hasPermission, PERMISSIONS, type AppRole } from "@/lib/rbac";
 // POST /api/reports/:id/submit -> submit a report
 export async function POST(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const params = await context.params;
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
