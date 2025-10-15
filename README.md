@@ -130,6 +130,12 @@ npm run build
 npm run start
 ```
 
+> ℹ️ `npm start` exécute Next.js en mode production. Dans ce mode, NextAuth requiert un secret stable via les variables
+> `AUTH_SECRET` ou `NEXTAUTH_SECRET`. Si aucune de ces variables n'est définie et que l'application est servie depuis
+> `http://localhost`, un secret de secours réservé aux tests locaux est généré automatiquement. Ce comportement permet
+> d'utiliser `npm start` en local, mais ne doit **jamais** être utilisé sur un environnement déployé : fournissez toujours un
+> secret robuste dans vos variables d'environnement de production.
+
 ## Structure du projet
 
 Le projet suit la structure de l'App Router de Next.js :
