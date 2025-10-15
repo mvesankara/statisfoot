@@ -57,6 +57,11 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
     > dans la liste des URI de redirection autorisés de votre projet Google Cloud. Une erreur `redirect_uri_mismatch` indique que
     > l'URL générée par NextAuth ne correspond pas à la configuration côté Google.
 
+    **SMTP et envoi d'e-mails** : pour que l'inscription et la réinitialisation de mot de passe fonctionnent en production,
+    fournissez également les variables `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER` et `EMAIL_PASS`. En environnement de
+    développement, si ces variables sont absentes, l'application crée automatiquement un compte de test [Ethereal Email](https://ethereal.email/)
+    et affiche l'URL de prévisualisation de chaque e-mail dans la console. Aucune livraison réelle n'a lieu dans ce mode.
+
 4.  **Appliquez les migrations de la base de données** :
     Cette commande va créer les tables nécessaires dans votre base de données en se basant sur le schéma Prisma.
 
