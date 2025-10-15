@@ -39,9 +39,10 @@ export const createPlayerSchema = z.object({
       (value) => hasMinimumLength(value, MIN_NAME_LENGTH),
       `Le nom doit contenir au moins ${MIN_NAME_LENGTH} caractères.`
     ),
-  primaryPosition: z.enum(POSITION_GROUP_VALUES, {
-    errorMap: () => ({ message: "Sélectionnez un poste principal valide." }),
-  }),
+  primaryPosition: z.enum(
+    POSITION_GROUP_VALUES,
+    "Sélectionnez un poste principal valide."
+  ),
 });
 
 export type CreatePlayerInput = zInfer<typeof createPlayerSchema>;

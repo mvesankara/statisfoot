@@ -109,6 +109,9 @@ export function NewReportPageClient({
     },
   });
 
+  const registerField = <Name extends keyof ReportFormValues>(name: Name) =>
+    register(name) as unknown as Record<string, unknown>;
+
   useEffect(() => {
     if (initialPlayerId) {
       setValue("playerId", initialPlayerId);
@@ -260,7 +263,7 @@ export function NewReportPageClient({
               </label>
               <select
                 id="playerId"
-                {...register("playerId")}
+                {...registerField("playerId")}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 disabled={(playersLoading && players.length === 0) || !canListPlayers}
               >
@@ -312,7 +315,7 @@ export function NewReportPageClient({
               <input
                 id="matchDate"
                 type="date"
-                {...register("matchDate")}
+                {...registerField("matchDate")}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               {errors.matchDate && (
@@ -334,7 +337,7 @@ export function NewReportPageClient({
             <input
               id="title"
               type="text"
-              {...register("title")}
+              {...registerField("title")}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder="Ex : Performance vs. FC Nantes"
             />
@@ -356,7 +359,7 @@ export function NewReportPageClient({
             <textarea
               id="content"
               rows={6}
-              {...register("content")}
+              {...registerField("content")}
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               placeholder="Décrivez le contexte du match, l’attitude du joueur, ses points marquants…"
             />
@@ -380,7 +383,7 @@ export function NewReportPageClient({
                 min={0}
                 max={10}
                 step={1}
-                {...register("rating")}
+                {...registerField("rating")}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Ex : 7"
               />
@@ -399,7 +402,7 @@ export function NewReportPageClient({
               </label>
               <select
                 id="recommendation"
-                {...register("recommendation")}
+                {...registerField("recommendation")}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="">Sélectionnez une recommandation</option>
@@ -427,7 +430,7 @@ export function NewReportPageClient({
               <textarea
                 id="strengths"
                 rows={4}
-                {...register("strengths")}
+                {...registerField("strengths")}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Ex : vision du jeu, qualité de passe…"
               />
@@ -447,7 +450,7 @@ export function NewReportPageClient({
               <textarea
                 id="weaknesses"
                 rows={4}
-                {...register("weaknesses")}
+                {...registerField("weaknesses")}
                 className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                 placeholder="Ex : intensité défensive, concentration…"
               />

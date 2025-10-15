@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { Prisma } from "@prisma/client";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -34,9 +33,14 @@ const PLAYER_SELECT = {
   primaryPosition: true,
 } as const;
 
-type ReportWithPlayer = Prisma.ReportGetPayload<{
-  include: { player: { select: typeof PLAYER_SELECT } };
-}>;
+type PlayerSummary = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  primaryPosition: string | null;
+};
+
+type ReportWithPlayer = { player: PlayerSummary } & Record<string, unknown>;
 
 function validateCreateReportPayload(body: unknown): ValidationResult {
   if (!body || typeof body !== "object") {
@@ -127,7 +131,7 @@ function validateCreateReportPayload(body: unknown): ValidationResult {
   return { success: true, data: data as CreateReportPayload };
 }
 
-function serializePlayer(player: ReportWithPlayer["player"]) {
+function serializePlayer(player: PlayerSummary) {
   const fullName = [player.firstName, player.lastName]
     .filter((value) => value && value.trim().length > 0)
     .join(" ");
@@ -147,15 +151,15 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const reports = await prisma.report.findMany({
+    const reports = (await prisma.report.findMany({
       where: { authorId: session.user.id },
       include: {
         player: { select: PLAYER_SELECT },
       },
       orderBy: { createdAt: "desc" },
-    });
+    })) as ReportWithPlayer[];
 
-    const payload = reports.map((report: ReportWithPlayer) => ({
+    const payload = reports.map((report) => ({
       ...report,
       player: serializePlayer(report.player),
     }));
@@ -209,7 +213,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Player not found" }, { status: 404 });
     }
 
-    const report = await prisma.report.create({
+    const report = (await prisma.report.create({
       data: {
         authorId: session.user.id,
         playerId,
@@ -224,7 +228,7 @@ export async function POST(req: NextRequest) {
       include: {
         player: { select: PLAYER_SELECT },
       },
-    });
+    })) as ReportWithPlayer;
 
     console.info(
       `[Reports] Report ${report.id} created by ${session.user.id} for player ${playerId}`

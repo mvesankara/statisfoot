@@ -30,6 +30,22 @@ type DashboardMetric = {
   value: string;
 };
 
+type DashboardPlayerSummary = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  primaryPosition: string | null;
+};
+
+type RecentReportRow = {
+  id: string;
+  status: string;
+  createdAt: Date;
+  matchDate: Date | null;
+  summary: string | null;
+  player: DashboardPlayerSummary;
+} & Record<string, unknown>;
+
 function DashboardHero({
   name,
   roleLabel,
@@ -118,44 +134,48 @@ export default async function DashboardPage() {
   const userId = session.user.id;
   const role = (session.user.role ?? "SCOUT") as UserRole;
 
-  const [recentReportsRaw, totalReports, playersCount] = await Promise.all([
-    prisma.report.findMany({
-      where: { authorId: userId },
-      select: {
-        id: true,
-        status: true,
-        createdAt: true,
-        matchDate: true,
-        summary: true,
-        player: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            primaryPosition: true,
-          },
+  const recentReportsPromise = prisma.report.findMany({
+    where: { authorId: userId },
+    select: {
+      id: true,
+      status: true,
+      createdAt: true,
+      matchDate: true,
+      summary: true,
+      player: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          primaryPosition: true,
         },
       },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  }) as Promise<RecentReportRow[]>;
+
+  const [recentReportsRaw, totalReports, playersCount] = await Promise.all([
+    recentReportsPromise,
     prisma.report.count({ where: { authorId: userId } }),
     prisma.player.count(),
   ]);
 
-  const recentReports: DashboardReport[] = recentReportsRaw.map((report) => ({
-    id: report.id,
-    status: report.status,
-    createdAt: report.createdAt,
-    matchDate: report.matchDate,
-    content: report.summary ?? "",
-    player: {
-      id: report.player.id,
-      firstName: report.player.firstName,
-      lastName: report.player.lastName,
-      primaryPosition: report.player.primaryPosition,
-    },
-  }));
+  const recentReports: DashboardReport[] = (recentReportsRaw as RecentReportRow[]).map(
+    (report) => ({
+      id: report.id,
+      status: report.status,
+      createdAt: report.createdAt,
+      matchDate: report.matchDate,
+      content: report.summary ?? "",
+      player: {
+        id: report.player.id,
+        firstName: report.player.firstName,
+        lastName: report.player.lastName,
+        primaryPosition: report.player.primaryPosition,
+      },
+    }),
+  );
 
   const lastReportDate = recentReports[0]?.createdAt ?? null;
 

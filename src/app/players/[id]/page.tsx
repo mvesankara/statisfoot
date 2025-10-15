@@ -24,6 +24,25 @@ type DisplayUser = {
   email: string | null;
 } | null;
 
+type PlayerReportRow = {
+  id: string;
+  title: string | null;
+  status: string;
+  createdAt: Date;
+  author: DisplayUser;
+};
+
+type PlayerProfileRecord = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  primaryPosition: string | null;
+  createdAt: Date;
+  creator: DisplayUser;
+  _count: { reports: number };
+  reports: PlayerReportRow[];
+} & Record<string, unknown>;
+
 function formatUserName(user: DisplayUser) {
   if (!user) return "—";
   if (user.displayName) {
@@ -54,7 +73,7 @@ export default async function PlayerProfile({
     ? hasPermission(role, PERMISSIONS["reports:create"])
     : false;
 
-  const player = await prisma.player.findUnique({
+  const player = (await prisma.player.findUnique({
     where: { id: params.id },
     include: {
       creator: {
@@ -83,7 +102,7 @@ export default async function PlayerProfile({
         },
       },
     },
-  });
+  })) as PlayerProfileRecord | null;
 
   if (!player) {
     notFound();

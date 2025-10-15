@@ -244,7 +244,9 @@ export function Sidebar() {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white">{fullName}</p>
-              <p className="truncate text-xs uppercase text-slate-400">{session.user.role}</p>
+              <p className="truncate text-xs uppercase text-slate-400">
+                {session?.user?.role ?? "Utilisateur"}
+              </p>
             </div>
           </div>
         )}

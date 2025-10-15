@@ -3,17 +3,14 @@
 import { randomBytes } from "crypto";
 import { hash } from "bcryptjs";
 import { redirect } from "next/navigation";
-import { UserRoleEnum } from "@prisma/client";
+const ROLE_VALUES = ["SCOUT", "RECRUITER", "AGENT"] as const;
+type AllowedRole = (typeof ROLE_VALUES)[number];
 
 import { sendVerificationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 
 export type State = string | null;
-const ALLOWED_ROLES = new Set<UserRoleEnum>([
-  UserRoleEnum.SCOUT,
-  UserRoleEnum.RECRUITER,
-  UserRoleEnum.AGENT,
-]);
+const ALLOWED_ROLES = new Set<AllowedRole>(ROLE_VALUES);
 
 function buildBaseUsername(email: string) {
   const localPart = email.split("@")[0] ?? "";
@@ -67,9 +64,9 @@ export async function register(prev: State, formData: FormData): Promise<State> 
   if (!firstName || !lastName || !email || !password) return "Tous les champs obligatoires ne sont pas remplis";
   if (password !== confirmPassword) return "Les mots de passe ne correspondent pas";
   if (password.length < 8) return "Le mot de passe doit contenir au moins 8 caractères";
-  const normalizedRole = ALLOWED_ROLES.has(roleInput as UserRoleEnum)
-    ? (roleInput as UserRoleEnum)
-    : UserRoleEnum.SCOUT;
+  const normalizedRole = ALLOWED_ROLES.has(roleInput as AllowedRole)
+    ? (roleInput as AllowedRole)
+    : ROLE_VALUES[0];
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) return "Cet email est déjà utilisé";
