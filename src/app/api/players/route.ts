@@ -9,7 +9,6 @@ import {
   formatPlayerName,
 } from "@/lib/players";
 import type { ZodIssue } from "@/lib/zod";
-import type { Player } from "@prisma/client";
 
 type Session = Awaited<ReturnType<typeof auth>>;
 
@@ -71,10 +70,9 @@ export async function GET() {
       },
     });
 
-    type PlayerListItem = Pick<
-      Player,
-      "id" | "firstName" | "lastName" | "primaryPosition"
-    >;
+    type PlayerListItem = Awaited<
+      ReturnType<typeof prisma.player.findMany>
+    >[number];
 
     const payload = players.map((player: PlayerListItem) => ({
       ...player,
