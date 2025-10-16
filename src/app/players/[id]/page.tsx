@@ -38,7 +38,7 @@ type PlayerProfileRecord = {
   lastName: string;
   primaryPosition: string | null;
   createdAt: Date;
-  creator: DisplayUser;
+  creator?: DisplayUser;
   _count: { reports: number };
   reports: PlayerReportRow[];
 } & Record<string, unknown>;
@@ -76,13 +76,6 @@ export default async function PlayerProfile({
   const player = (await prisma.player.findUnique({
     where: { id: params.id },
     include: {
-      creator: {
-        select: {
-          displayName: true,
-          username: true,
-          email: true,
-        },
-      },
       _count: { select: { reports: true } },
       reports: {
         orderBy: { createdAt: "desc" },
@@ -108,7 +101,7 @@ export default async function PlayerProfile({
     notFound();
   }
 
-  const creatorLabel = formatUserName(player.creator);
+  const creatorLabel = formatUserName(player.creator ?? null);
   const playerFullName = formatPlayerName(player.firstName, player.lastName) || "Joueur";
   const primaryPositionLabel = player.primaryPosition
     ? formatPrimaryPosition(player.primaryPosition)
