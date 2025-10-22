@@ -20,15 +20,22 @@ return null;
 
 
 function normalizeCallbackUrl(raw: string | null): string {
-  if (!raw) return "/app";
+  if (!raw) {
+    return "/app";
+  }
 
-  if (raw.startsWith("/")) return raw;
+  if (raw.startsWith("/")) {
+    // Disallow protocol-relative values such as "//malicious.com".
+    return raw.startsWith("//") ? "/app" : raw;
+  }
 
-  if (typeof window === "undefined") return "/app";
+  const origin = typeof window !== "undefined" ? window.location.origin : undefined;
 
   try {
-    const parsed = new URL(raw, window.location.origin);
-    if (parsed.origin !== window.location.origin) return "/app";
+    const parsed = origin ? new URL(raw, origin) : new URL(raw);
+    if (origin && parsed.origin !== origin) {
+      return "/app";
+    }
 
     const nextPath = `${parsed.pathname}${parsed.search}${parsed.hash}`;
     return nextPath || "/app";
