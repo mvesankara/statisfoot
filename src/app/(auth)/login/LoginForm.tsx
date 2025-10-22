@@ -19,10 +19,35 @@ return null;
 }
 
 
+function normalizeCallbackUrl(raw: string | null): string {
+  if (!raw) {
+    return "/app";
+  }
+
+  if (raw.startsWith("/")) {
+    // Disallow protocol-relative values such as "//malicious.com".
+    return raw.startsWith("//") ? "/app" : raw;
+  }
+
+  const origin = typeof window !== "undefined" ? window.location.origin : undefined;
+
+  try {
+    const parsed = origin ? new URL(raw, origin) : new URL(raw);
+    if (origin && parsed.origin !== origin) {
+      return "/app";
+    }
+
+    const nextPath = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    return nextPath || "/app";
+  } catch {
+    return "/app";
+  }
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
-  const callbackUrl = search.get("callbackUrl") || "/app";
+  const callbackUrl = normalizeCallbackUrl(search.get("callbackUrl"));
   const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
   const [submitting, startTransition] = useTransition();
   const [hasSubmitted, setHasSubmitted] = useState(false);
