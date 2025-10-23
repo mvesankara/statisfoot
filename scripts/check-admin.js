@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
-
 const { PrismaClient } = require("@prisma/client");
 const dotenv = require("dotenv");
 
