@@ -19,7 +19,6 @@ async function findAvailableUsername(base) {
   let candidate = base;
   let suffix = 1;
 
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const existing = await prisma.user.findUnique({ where: { username: candidate } });
     if (!existing) return candidate;
@@ -42,7 +41,6 @@ function buildDisplayName(email, fallbackUsername) {
 
 async function ensureRoles() {
   for (const roleName of roleValues) {
-    // eslint-disable-next-line no-await-in-loop
     await prisma.role.upsert({
       where: { name: roleName },
       update: {},
