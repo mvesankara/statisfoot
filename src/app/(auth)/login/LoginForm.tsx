@@ -54,6 +54,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (hasSubmitted && error === null && !isPending && !submitting) {
+      setHasSubmitted(false);
       router.replace(callbackUrl);
     }
   }, [callbackUrl, error, hasSubmitted, isPending, router, submitting]);
