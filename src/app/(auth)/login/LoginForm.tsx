@@ -54,12 +54,17 @@ export default function LoginForm() {
   const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
+
     if (!hasSubmittedRef.current) {
       return;
     }
 
     if (!hasRedirectedRef.current && error === null && !isPending && !submitting) {
       hasRedirectedRef.current = true;
+
+    if (hasSubmitted && error === null && !isPending && !submitting) {
+      setHasSubmitted(false);
+
       router.replace(callbackUrl);
     }
   }, [callbackUrl, error, isPending, router, submitting]);
