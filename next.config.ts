@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
         __dirname,
         "src/lib/hookform-zod-resolver"
       ),
+      "next-auth/react": "next-auth/react/index.js",
+      "next-auth/middleware": "next-auth/middleware.js",
+      "next-auth/providers/credentials": "next-auth/providers/credentials.js",
+      "next-auth/providers/google": "next-auth/providers/google.js",
     };
     return config;
   },
