@@ -1,7 +1,7 @@
 // src/app/(auth)/login/LoginForm.tsx
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
@@ -50,19 +50,26 @@ export default function LoginForm() {
   const callbackUrl = normalizeCallbackUrl(search.get("callbackUrl"));
   const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
   const [submitting, startTransition] = useTransition();
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const hasSubmittedRef = useRef(false);
+  const hasRedirectedRef = useRef(false);
 
   useEffect(() => {
-    if (hasSubmitted && error === null && !isPending && !submitting) {
+    if (!hasSubmittedRef.current) {
+      return;
+    }
+
+    if (!hasRedirectedRef.current && error === null && !isPending && !submitting) {
+      hasRedirectedRef.current = true;
       router.replace(callbackUrl);
     }
-  }, [callbackUrl, error, hasSubmitted, isPending, router, submitting]);
+  }, [callbackUrl, error, isPending, router, submitting]);
 
 
   return (
     <form
       action={(fd) => {
-        setHasSubmitted(true);
+        hasSubmittedRef.current = true;
+        hasRedirectedRef.current = false;
         startTransition(() => {
           formAction(fd);
         });
