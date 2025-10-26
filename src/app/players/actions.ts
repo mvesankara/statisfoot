@@ -10,6 +10,7 @@ import {
   normalizePlayerInput,
   type CreatePlayerInput,
 } from "@/lib/players";
+import { debug } from "@/lib/debug";
 
 import type { CreatePlayerState } from "./state";
 
@@ -24,6 +25,8 @@ function resolveRole(value: string | undefined | null): AppRole | null {
 
 export async function persistPlayer(input: CreatePlayerInput) {
   const normalized = normalizePlayerInput(input);
+
+  debug("players", "Persistance d'un joueur", normalized);
 
   return prisma.player.create({
     data: {
@@ -40,7 +43,13 @@ export async function createPlayer(
 ): Promise<CreatePlayerState> {
   const session = await auth();
 
+  debug("players", "Soumission du formulaire d'ajout de joueur", {
+    userId: session?.user?.id,
+    role: session?.user?.role,
+  });
+
   if (!session?.user?.id) {
+    debug("players", "Utilisateur non authentifié");
     return {
       success: false,
       errors: {},
@@ -50,6 +59,10 @@ export async function createPlayer(
 
   const role = resolveRole(session.user.role);
   if (!role || !hasPermission(role, PERMISSIONS["players:create"])) {
+    debug("players", "Permission insuffisante", {
+      userId: session.user.id,
+      role: session.user.role,
+    });
     return {
       success: false,
       errors: {},
@@ -66,6 +79,9 @@ export async function createPlayer(
   const parsed = createPlayerSchema.safeParse(candidate);
 
   if (!parsed.success) {
+    debug("players", "Validation du formulaire échouée", {
+      issues: parsed.error.issues,
+    });
     const fieldErrors: CreatePlayerState["errors"] = {};
     for (const issue of parsed.error.issues) {
       const field = issue.path[0];
@@ -85,6 +101,9 @@ export async function createPlayer(
     await persistPlayer(parsed.data);
   } catch (error) {
     console.error("Failed to create player", error);
+    debug("players", "Erreur lors de la création du joueur", {
+      userId: session.user.id,
+    });
     return {
       success: false,
       errors: {},
@@ -93,6 +112,10 @@ export async function createPlayer(
   }
 
   revalidatePath("/players");
+
+  debug("players", "Joueur créé et cache révalidé", {
+    userId: session.user.id,
+  });
 
   return {
     success: true,

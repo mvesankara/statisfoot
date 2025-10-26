@@ -9,6 +9,7 @@ import {
   formatPlayerName,
 } from "@/lib/players";
 import type { ZodIssue } from "@/lib/zod";
+import { debug } from "@/lib/debug";
 
 type Session = Awaited<ReturnType<typeof auth>>;
 
@@ -36,15 +37,22 @@ function getAuthorizedUser(
   const userId = session?.user?.id;
 
   if (!role || !userId) {
+    debug("players:api", "Session non autorisée", { hasRole: Boolean(role), userId });
     return null;
   }
 
   const requiredPermissions = Array.isArray(permissions) ? permissions : [permissions];
 
   if (!hasAnyPermission(role, requiredPermissions)) {
+    debug("players:api", "Permissions insuffisantes", {
+      userId,
+      role,
+      requiredPermissions,
+    });
     return null;
   }
 
+  debug("players:api", "Utilisateur autorisé", { userId, role });
   return { userId, role };
 }
 
@@ -59,6 +67,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  debug("players:api", "Récupération de la liste des joueurs", authUser);
   try {
     const players = await prisma.player.findMany({
       orderBy: { lastName: "asc" },
@@ -82,6 +91,9 @@ export async function GET() {
     return NextResponse.json(payload);
   } catch (error) {
     console.error("[Players] Failed to list players", error);
+    debug("players:api", "Erreur lors de la récupération des joueurs", {
+      userId: authUser.userId,
+    });
     return NextResponse.json(
       { error: "Impossible de récupérer la liste des joueurs." },
       { status: 500 }
@@ -97,10 +109,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  debug("players:api", "Création d'un joueur", authUser);
   let payload: unknown;
   try {
     payload = await req.json();
   } catch {
+    debug("players:api", "Payload JSON invalide", { userId: authUser.userId });
     return NextResponse.json(
       { error: "Corps de requête invalide." },
       { status: 400 }
@@ -109,6 +123,10 @@ export async function POST(req: NextRequest) {
 
   const parsed = createPlayerSchema.safeParse(payload);
   if (!parsed.success) {
+    debug("players:api", "Validation de création échouée", {
+      userId: authUser.userId,
+      issues: parsed.error.issues,
+    });
     const fieldErrors = buildFieldErrors(parsed.error.issues);
     return NextResponse.json(
       { error: "Validation échouée.", fieldErrors },
@@ -117,6 +135,10 @@ export async function POST(req: NextRequest) {
   }
 
   const normalized = normalizePlayerInput(parsed.data);
+  debug("players:api", "Création du joueur en base", {
+    userId: authUser.userId,
+    normalized,
+  });
 
   try {
     const player = await prisma.player.create({
@@ -142,6 +164,9 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("[Players] Failed to create player", error);
+    debug("players:api", "Erreur lors de l'enregistrement du joueur", {
+      userId: authUser.userId,
+    });
     return NextResponse.json(
       { error: "Impossible d'enregistrer ce joueur." },
       { status: 500 }

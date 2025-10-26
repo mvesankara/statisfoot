@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
 import { redirect } from "next/navigation";
+import { debug } from "@/lib/debug";
 
 export type State = string | null;
 
@@ -20,6 +21,10 @@ export async function resetPassword(prevState: State, formData: FormData): Promi
   const token = String(formData.get("token") ?? "");
   const password = String(formData.get("password") ?? "");
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
+
+  debug("reset-password", "Soumission de réinitialisation reçue", {
+    hasToken: token.length > 0,
+  });
 
   if (!token) {
     return "Token manquant.";
@@ -43,6 +48,7 @@ export async function resetPassword(prevState: State, formData: FormData): Promi
   });
 
   if (!user) {
+    debug("reset-password", "Jeton invalide ou expiré", { tokenLength: token.length });
     return "Le token est invalide ou a expiré.";
   }
 
@@ -56,6 +62,8 @@ export async function resetPassword(prevState: State, formData: FormData): Promi
       passwordResetTokenExpiry: null,
     },
   });
+
+  debug("reset-password", "Mot de passe mis à jour", { userId: user.id });
 
   redirect("/login?reset=true");
 }
