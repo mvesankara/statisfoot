@@ -1,9 +1,10 @@
 // src/app/(auth)/reset-password/page.tsx
 "use client";
-import { useActionState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { resetPassword, type State } from "@/app/reset-password/actions";
 import { PasswordInput } from "@/components/PasswordInput";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 /**
  * @page ResetPasswordPage
@@ -15,7 +16,27 @@ import { PasswordInput } from "@/components/PasswordInput";
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
-  const [message, formAction, isPending] = useActionState<State, FormData>(resetPassword, null);
+  const [message, setMessage] = useState<State>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsPending(true);
+    setMessage(null);
+
+    try {
+      const result = await resetPassword(null, formData);
+      setMessage(result);
+    } catch (err) {
+      if (isRedirectError(err)) {
+        throw err;
+      }
+
+      console.error("Erreur lors de la réinitialisation du mot de passe", err);
+      setMessage("Une erreur inattendue est survenue. Veuillez réessayer.");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <>
@@ -24,7 +45,7 @@ export default function ResetPasswordPage() {
         Entrez votre nouveau mot de passe.
       </p>
 
-      <form action={formAction} className="mt-6 flex flex-col gap-4">
+      <form action={handleSubmit} className="mt-6 flex flex-col gap-4">
         <input type="hidden" name="token" value={token ?? ""} />
         <PasswordInput name="password" />
         <PasswordInput name="confirmPassword" label="Confirmer le mot de passe" />
