@@ -1,9 +1,10 @@
 // src/app/(auth)/register/page.tsx
 "use client";
-import { useActionState } from "react";
+import { useState } from "react";
 import { register, type State } from "@/app/register/actions";
 import { PasswordInput } from "@/components/PasswordInput";
 import { signIn } from "next-auth/react";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 
 /**
  * @page RegisterPage
@@ -13,14 +14,34 @@ import { signIn } from "next-auth/react";
  * @returns {JSX.Element} Le composant de la page d'inscription.
  */
 export default function RegisterPage() {
-  const [error, formAction, isPending] = useActionState<State, FormData>(register, null);
+  const [error, setError] = useState<State>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsPending(true);
+    setError(null);
+
+    try {
+      const result = await register(null, formData);
+      setError(result);
+    } catch (err) {
+      if (isRedirectError(err)) {
+        throw err;
+      }
+
+      console.error("Erreur lors de l'inscription", err);
+      setError("Une erreur inattendue est survenue. Veuillez réessayer.");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <>
       <h1 className="text-2xl font-semibold">Créer un compte</h1>
       <p className="text-sm text-slate-400 mt-1">Rejoignez Statisf<span className="text-brand-sky">is</span>foot.</p>
 
-      <form action={formAction} className="mt-6 flex flex-col gap-4">
+      <form action={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <label htmlFor="firstName" className="text-sm text-slate-300">Prénom</label>

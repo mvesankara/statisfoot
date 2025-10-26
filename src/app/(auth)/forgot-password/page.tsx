@@ -1,6 +1,6 @@
 // src/app/(auth)/forgot-password/page.tsx
 "use client";
-import { useActionState } from "react";
+import { useState } from "react";
 import { forgotPassword, type State } from "@/app/forgot-password/actions";
 
 /**
@@ -11,7 +11,23 @@ import { forgotPassword, type State } from "@/app/forgot-password/actions";
  * @returns {JSX.Element} Le composant de la page de mot de passe oublié.
  */
 export default function ForgotPasswordPage() {
-  const [message, formAction, isPending] = useActionState<State, FormData>(forgotPassword, null);
+  const [message, setMessage] = useState<State>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleSubmit = async (formData: FormData) => {
+    setIsPending(true);
+    setMessage(null);
+
+    try {
+      const result = await forgotPassword(null, formData);
+      setMessage(result);
+    } catch (err) {
+      console.error("Erreur lors de la demande de réinitialisation", err);
+      setMessage("Une erreur inattendue est survenue. Veuillez réessayer.");
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <>
@@ -20,7 +36,7 @@ export default function ForgotPasswordPage() {
         Entrez votre email pour recevoir un lien de réinitialisation.
       </p>
 
-      <form action={formAction} className="mt-6 flex flex-col gap-4">
+      <form action={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="email" className="text-sm text-slate-300">Email</label>
           <input id="email" name="email" type="email" required

@@ -1,23 +1,12 @@
 // src/app/(auth)/login/LoginForm.tsx
 "use client";
 
-import { useActionState, useEffect, useRef, useTransition } from "react";
+import { FormEvent, useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PasswordInput } from "@/components/PasswordInput";
 
 type State = string | null;
-
-async function loginAction(_: State, formData: FormData): Promise<State> {
-const email = String(formData.get("email") ?? "");
-const password = String(formData.get("password") ?? "");
-if (!email || !password) return "Veuillez remplir tous les champs";
-const res = await signIn("credentials", { redirect: false, email, password });
-if (!res) return "Erreur inattendue";
-if (res.error) return "Identifiants invalides";
-return null;
-}
-
 
 function normalizeCallbackUrl(raw: string | null): string {
   if (!raw) {
@@ -48,34 +37,58 @@ export default function LoginForm() {
   const router = useRouter();
   const search = useSearchParams();
   const callbackUrl = normalizeCallbackUrl(search.get("callbackUrl"));
-  const [error, formAction, isPending] = useActionState<State, FormData>(loginAction, null);
-  const [submitting, startTransition] = useTransition();
-  const hasSubmittedRef = useRef(false);
-  const hasRedirectedRef = useRef(false);
+  const [error, setError] = useState<State>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isRedirecting, startTransition] = useTransition();
 
-  useEffect(() => {
-    if (!hasSubmittedRef.current) {
+  const pending = isSubmitting || isRedirecting;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+
+    if (!email || !password) {
+      setError("Veuillez remplir tous les champs");
       return;
     }
 
-    if (!hasRedirectedRef.current && error === null && !isPending && !submitting) {
-      hasRedirectedRef.current = true;
-      router.replace(callbackUrl);
-    }
-  }, [callbackUrl, error, isPending, router, submitting]);
+    setIsSubmitting(true);
 
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (!res) {
+        setError("Erreur inattendue");
+        return;
+      }
+
+      if (res.error) {
+        setError("Identifiants invalides");
+        return;
+      }
+
+      startTransition(() => {
+        router.replace(callbackUrl);
+        router.refresh();
+      });
+    } catch (err) {
+      console.error("Erreur lors de la connexion", err);
+      setError("Impossible de se connecter. Veuillez réessayer.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <form
-      action={(fd) => {
-        hasSubmittedRef.current = true;
-        hasRedirectedRef.current = false;
-        startTransition(() => {
-          formAction(fd);
-        });
-      }}
-      className="mt-6 flex flex-col gap-4"
-    >
+    <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <label htmlFor="email" className="text-sm text-slate-300">
           Email
@@ -94,10 +107,10 @@ export default function LoginForm() {
 
       <button
         type="submit"
-        disabled={isPending || submitting}
+        disabled={pending}
         className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
       >
-        {(isPending || submitting) && (
+        {pending && (
           <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
