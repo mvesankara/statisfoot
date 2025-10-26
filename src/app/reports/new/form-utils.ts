@@ -1,4 +1,5 @@
 import { z, infer as inferType } from "../../../lib/zod";
+import { debug } from "@/lib/debug";
 
 type FetchResponse = Pick<Response, "ok" | "json">;
 export type FetchLike = (
@@ -67,7 +68,7 @@ export function buildReportPayload(values: ReportFormValues) {
   const rating = values.rating && values.rating.trim().length > 0 ? Number(values.rating) : undefined;
   const matchDate = values.matchDate && values.matchDate.trim().length > 0 ? values.matchDate : undefined;
 
-  return {
+  const payload = {
     playerId: values.playerId,
     title: values.title,
     content: values.content,
@@ -80,6 +81,10 @@ export function buildReportPayload(values: ReportFormValues) {
         : undefined,
     matchDate: matchDate ?? undefined,
   };
+
+  debug("reports:form", "Payload construit", payload);
+
+  return payload;
 }
 
 export async function submitReport(
@@ -87,6 +92,11 @@ export async function submitReport(
   fetchImpl: FetchLike = fetch
 ) {
   const payload = buildReportPayload(values);
+
+  debug("reports:form", "Envoi du rapport", {
+    playerId: payload.playerId,
+    titleLength: payload.title.length,
+  });
   const response = await fetchImpl("/api/reports", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -96,8 +106,15 @@ export async function submitReport(
 
   if (!response.ok) {
     const errorPayload = await response.json().catch(() => null);
+    debug("reports:form", "Échec de l'envoi du rapport", {
+      status: response.ok,
+      error: errorPayload,
+    });
     throw new Error(errorPayload?.error ?? "Impossible d'enregistrer le rapport");
   }
 
+  debug("reports:form", "Rapport envoyé avec succès", {
+    playerId: payload.playerId,
+  });
   return payload;
 }

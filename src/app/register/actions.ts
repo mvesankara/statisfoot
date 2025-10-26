@@ -8,6 +8,7 @@ type AllowedRole = (typeof ROLE_VALUES)[number];
 
 import { sendVerificationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
+import { debug } from "@/lib/debug";
 
 export type State = string | null;
 const ALLOWED_ROLES = new Set<AllowedRole>(ROLE_VALUES);
@@ -61,6 +62,11 @@ export async function register(prev: State, formData: FormData): Promise<State> 
   const confirmPassword = String(formData.get("confirmPassword") ?? "");
   const roleInput = String(formData.get("role") ?? "SCOUT").toUpperCase();
 
+  debug("register", "Soumission du formulaire d'inscription", {
+    email,
+    roleInput,
+  });
+
   if (!firstName || !lastName || !email || !password) return "Tous les champs obligatoires ne sont pas remplis";
   if (password !== confirmPassword) return "Les mots de passe ne correspondent pas";
   if (password.length < 8) return "Le mot de passe doit contenir au moins 8 caractères";
@@ -69,7 +75,10 @@ export async function register(prev: State, formData: FormData): Promise<State> 
     : ROLE_VALUES[0];
 
   const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) return "Cet email est déjà utilisé";
+  if (existing) {
+    debug("register", "Email déjà utilisé", { email });
+    return "Cet email est déjà utilisé";
+  }
 
   const baseUsername = buildBaseUsername(email);
   const username = await findAvailableUsername(baseUsername);
@@ -94,6 +103,11 @@ export async function register(prev: State, formData: FormData): Promise<State> 
     },
   });
 
+  debug("register", "Utilisateur créé", {
+    userId: user.id,
+    role: normalizedRole,
+  });
+
   await prisma.emailVerificationToken.upsert({
     where: { userId: user.id },
     update: { token: verificationToken, expiresAt: verificationExpiresAt },
@@ -105,6 +119,8 @@ export async function register(prev: State, formData: FormData): Promise<State> 
   });
 
   await sendVerificationEmail(email, verificationToken);
+
+  debug("register", "Email de vérification envoyé", { userId: user.id });
 
   redirect("/login?verified=false");
 }

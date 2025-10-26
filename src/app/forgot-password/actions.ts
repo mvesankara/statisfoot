@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { randomBytes } from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { debug } from "@/lib/debug";
 
 export type State = string | null;
 
@@ -18,6 +19,8 @@ export type State = string | null;
 export async function forgotPassword(prevState: State, formData: FormData): Promise<State> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
 
+  debug("forgot-password", "Demande de réinitialisation reçue", { email });
+
   if (!email) {
     return "Veuillez entrer votre email.";
   }
@@ -25,6 +28,7 @@ export async function forgotPassword(prevState: State, formData: FormData): Prom
   const user = await prisma.user.findUnique({ where: { email } });
 
   if (!user) {
+    debug("forgot-password", "Aucun utilisateur trouvé pour l'email", { email });
     return "Si un compte avec cet email existe, un lien de réinitialisation a été envoyé.";
   }
 
@@ -39,7 +43,14 @@ export async function forgotPassword(prevState: State, formData: FormData): Prom
     },
   });
 
+  debug("forgot-password", "Jeton de réinitialisation généré", {
+    userId: user.id,
+    expiry,
+  });
+
   await sendPasswordResetEmail(email, token);
+
+  debug("forgot-password", "Email de réinitialisation envoyé", { userId: user.id });
 
   return "Si un compte avec cet email existe, un lien de réinitialisation a été envoyé.";
 }

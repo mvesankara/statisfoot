@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { debug } from "@/lib/debug";
 
 type CreateReportPayload = {
   playerId: string;
@@ -44,6 +45,7 @@ type ReportWithPlayer = { player: PlayerSummary } & Record<string, unknown>;
 
 function validateCreateReportPayload(body: unknown): ValidationResult {
   if (!body || typeof body !== "object") {
+    debug("reports:api", "Payload invalide (non objet)");
     return {
       success: false,
       fieldErrors: {},
@@ -125,9 +127,11 @@ function validateCreateReportPayload(body: unknown): ValidationResult {
   }
 
   if (Object.keys(fieldErrors).length > 0) {
+    debug("reports:api", "Erreurs de validation", { fieldErrors, formErrors });
     return { success: false, fieldErrors, formErrors };
   }
 
+  debug("reports:api", "Payload valide", data);
   return { success: true, data: data as CreateReportPayload };
 }
 
@@ -150,6 +154,9 @@ export async function GET() {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  debug("reports:api", "Récupération des rapports", {
+    userId: session.user.id,
+  });
   try {
     const reports = (await prisma.report.findMany({
       where: { authorId: session.user.id },
@@ -164,9 +171,16 @@ export async function GET() {
       player: serializePlayer(report.player),
     }));
 
+    debug("reports:api", "Rapports récupérés", {
+      userId: session.user.id,
+      count: payload.length,
+    });
     return NextResponse.json(payload);
   } catch (error) {
     console.error("[Reports] Failed to fetch reports", error);
+    debug("reports:api", "Erreur lors de la récupération des rapports", {
+      userId: session.user.id,
+    });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
@@ -176,17 +190,28 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  debug("reports:api", "Création d'un rapport", {
+    userId: session.user.id,
+  });
   let body: unknown;
   try {
     body = await req.json();
   } catch (error) {
     console.warn("[Reports] Invalid JSON payload", error);
+    debug("reports:api", "JSON invalide lors de la création", {
+      userId: session.user.id,
+    });
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
   const validationResult = validateCreateReportPayload(body);
   if (!validationResult.success) {
     const { fieldErrors, formErrors } = validationResult;
+    debug("reports:api", "Validation du rapport échouée", {
+      userId: session.user.id,
+      fieldErrors,
+      formErrors,
+    });
     return NextResponse.json(
       { error: "Invalid payload", fieldErrors, formErrors },
       { status: 400 }
@@ -210,6 +235,7 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
     if (!player) {
+      debug("reports:api", "Joueur introuvable", { playerId });
       return NextResponse.json({ error: "Player not found" }, { status: 404 });
     }
 
@@ -234,12 +260,20 @@ export async function POST(req: NextRequest) {
       `[Reports] Report ${report.id} created by ${session.user.id} for player ${playerId}`
     );
 
+    debug("reports:api", "Rapport créé", {
+      reportId: report.id,
+      userId: session.user.id,
+    });
+
     return NextResponse.json(
       { report: { ...report, player: serializePlayer(report.player) } },
       { status: 201 }
     );
   } catch (error) {
     console.error("[Reports] Failed to create report", error);
+    debug("reports:api", "Erreur lors de la création du rapport", {
+      userId: session.user.id,
+    });
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
