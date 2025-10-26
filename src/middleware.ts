@@ -94,10 +94,18 @@ export function isAuthorized(role: AppRole | null | undefined, path: string) {
 export default withAuth({
   callbacks: {
     authorized: ({ token, req }: AuthorizedCallbackParams) => {
-      if (!token) return false;
-
       const path = req.nextUrl.pathname;
+      if (!token) {
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("[middleware] Aucun jeton trouvé pour", path);
+        }
+        return false;
+      }
+
       const role = token.role as AppRole | null | undefined;
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("[middleware] Jeton reçu", { path, role });
+      }
       return isAuthorized(role, path);
     },
   },
