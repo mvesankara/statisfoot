@@ -1,4 +1,5 @@
 import NextAuth, {
+  AuthError,
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
@@ -187,7 +188,19 @@ const authHandler = NextAuth(authOptions);
 export const handlers = { GET: authHandler, POST: authHandler };
 
 export async function auth() {
-  return getServerSession(authOptions);
+  try {
+    return await getServerSession(authOptions);
+  } catch (error) {
+    if (error instanceof AuthError && error.type === "JWT_SESSION_ERROR") {
+      console.warn(
+        "Impossible de décrypter la session existante. La session est ignorée et un nouvel utilisateur devra se reconnecter.",
+        error
+      );
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 
