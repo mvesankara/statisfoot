@@ -1,5 +1,4 @@
 import NextAuth, {
-  AuthError,
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
@@ -225,7 +224,10 @@ export async function auth() {
   try {
     return await getServerSession(authOptions);
   } catch (error) {
-    if (error instanceof AuthError && error.type === "JWT_SESSION_ERROR") {
+    if (
+      error instanceof Error &&
+      (error as { type?: string }).type === "JWT_SESSION_ERROR"
+    ) {
       console.warn(
         "Impossible de décrypter la session existante. La session est ignorée et un nouvel utilisateur devra se reconnecter.",
         error
