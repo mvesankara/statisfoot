@@ -1,16 +1,11 @@
 #!/usr/bin/env node
 const { PrismaClient } = require("@prisma/client");
-const dotenv = require("dotenv");
+const { loadEnv } = require("./utils/env");
+const { normalizeEmail } = require("./utils/admin-account");
 
-dotenv.config();
+loadEnv();
 
 const prisma = new PrismaClient();
-
-function normalizeEmail(raw) {
-  return String(raw ?? "")
-    .trim()
-    .toLowerCase();
-}
 
 function parseArgs(argv) {
   const [, , ...rest] = argv;
