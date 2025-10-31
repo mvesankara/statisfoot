@@ -93,6 +93,16 @@ Pour lancer le projet en local, suivez les étapes ci-dessous.
     npx prisma db seed
     ```
 
+    À tout moment, vous pouvez créer ou mettre à jour un compte administrateur via la commande dédiée suivante (les variables
+    d'environnement `DATABASE_URL`, `AUTH_URL`, etc. sont chargées automatiquement depuis `.env`, `.env.local`, ...):
+
+    ```bash
+    npm run create:admin -- --email admin@example.com --password mot_de_passe --name "Nom Affiché"
+    ```
+
+    Cette commande applique le même comportement que le seed : elle garantit la présence du rôle `ADMIN`, crée le compte s'il
+    n'existe pas encore et assigne le rôle si l'utilisateur est déjà présent.
+
 
 6.  **Lancez le serveur de développement** :
     ```bash

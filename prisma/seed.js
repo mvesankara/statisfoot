@@ -1,55 +1,14 @@
-const { PrismaClient, UserRoleEnum } = require("@prisma/client");
-const { hash } = require("bcryptjs");
+const { PrismaClient } = require("@prisma/client");
+const { ensureRoles, ensureAdminAccount } = require("../scripts/utils/admin-account");
+const { loadEnv } = require("../scripts/utils/env");
+
+loadEnv();
 
 const prisma = new PrismaClient();
 
-const roleValues = Object.values(UserRoleEnum);
+async function runSeed() {
+  await ensureRoles(prisma);
 
-function buildBaseUsername(email) {
-  const [localPart = ""] = email.split("@");
-  const sanitized = localPart
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]/g, "")
-    .replace(/^[._-]+/, "")
-    .replace(/[._-]+$/, "");
-  return sanitized || "admin";
-}
-
-async function findAvailableUsername(base) {
-  let candidate = base;
-  let suffix = 1;
-
-  while (true) {
-    const existing = await prisma.user.findUnique({ where: { username: candidate } });
-    if (!existing) return candidate;
-    candidate = `${base}${suffix}`;
-    suffix += 1;
-  }
-}
-
-function buildDisplayName(email, fallbackUsername) {
-  const [localPart = ""] = email.split("@");
-  if (localPart) {
-    return localPart
-      .split(/[._-]+/)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-  }
-  return fallbackUsername.charAt(0).toUpperCase() + fallbackUsername.slice(1);
-}
-
-async function ensureRoles() {
-  for (const roleName of roleValues) {
-    await prisma.role.upsert({
-      where: { name: roleName },
-      update: {},
-      create: { name: roleName },
-    });
-  }
-}
-
-async function ensureAdminAccount() {
   const adminEmail = process.env.SEED_ADMIN_EMAIL;
   const adminPassword = process.env.SEED_ADMIN_PASSWORD;
   const adminDisplayName = process.env.SEED_ADMIN_NAME;
@@ -61,62 +20,18 @@ async function ensureAdminAccount() {
     return;
   }
 
-  const normalizedEmail = adminEmail.trim().toLowerCase();
-  const baseUsername = buildBaseUsername(normalizedEmail);
-  const username = await findAvailableUsername(baseUsername);
-  const displayName = adminDisplayName?.trim() || buildDisplayName(normalizedEmail, username);
-  const hashedPass = await hash(adminPassword, 10);
-
-  const adminRole = await prisma.role.findUnique({ where: { name: UserRoleEnum.ADMIN } });
-  if (!adminRole) {
-    throw new Error("ADMIN role is missing from the Role table. Run ensureRoles() first.");
-  }
-
-  const user = await prisma.user.upsert({
-    where: { email: normalizedEmail },
-    update: {
-      hashedPass,
-      displayName,
-      disabledAt: null,
-      emailVerified: new Date(),
-    },
-    create: {
-      email: normalizedEmail,
-      username,
-      displayName,
-      hashedPass,
-      emailVerified: new Date(),
-      roles: {
-        create: {
-          role: { connect: { id: adminRole.id } },
-        },
-      },
-    },
+  const result = await ensureAdminAccount(prisma, {
+    email: adminEmail,
+    password: adminPassword,
+    displayName: adminDisplayName,
   });
 
-  await prisma.userRole.upsert({
-    where: {
-      userId_roleId: {
-        userId: user.id,
-        roleId: adminRole.id,
-      },
-    },
-    update: {},
-    create: {
-      userId: user.id,
-      roleId: adminRole.id,
-    },
-  });
-
-  console.info(`[seed] Admin account ready for ${normalizedEmail}`);
+  console.info(
+    `[seed] Admin account ready for ${result.normalizedEmail} (username: ${result.username}).`,
+  );
 }
 
-async function main() {
-  await ensureRoles();
-  await ensureAdminAccount();
-}
-
-main()
+runSeed()
   .catch((error) => {
     console.error("[seed] Failed to seed database", error);
     process.exitCode = 1;
